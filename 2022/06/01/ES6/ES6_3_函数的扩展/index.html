@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>ES6 学习笔记（2） - 变量的解构赋值 | 大西瓜的博客</title><meta name="keywords" content="ES6,let,const"><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="es6 函数的扩展1. 函数参数的默认值 基本用法  12345678910111213141516function log(x, y &#x3D; &amp;#x27;World&amp;#x27;) &amp;#123;  console.log(x, y);&amp;#125;log(&amp;#x27;Hello&amp;#x27;) &#x2F;&#x2F; Hello Worldlog(&amp;#x27;Hello&amp;#x27;, &amp;#x27;China&amp;#x27;)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES6 学习笔记（2） - 变量的解构赋值">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="es6 函数的扩展1. 函数参数的默认值 基本用法  12345678910111213141516function log(x, y &#x3D; &amp;#x27;World&amp;#x27;) &amp;#123;  console.log(x, y);&amp;#125;log(&amp;#x27;Hello&amp;#x27;) &#x2F;&#x2F; Hello Worldlog(&amp;#x27;Hello&amp;#x27;, &amp;#x27;China&amp;#x27;)">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png">
+<meta property="article:published_time" content="2022-06-01T14:31:46.000Z">
+<meta property="article:modified_time" content="2022-10-30T13:19:57.144Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="ES6">
+<meta property="article:tag" content="es6">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ES6 学习笔记（2） - 变量的解构赋值',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-10-30 21:19:57'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">大西瓜的博客</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ES6 学习笔记（2） - 变量的解构赋值</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2022-06-01T14:31:46.000Z" title="发表于 2022-06-01 22:31:46">2022-06-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ES6/">ES6</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ES6 学习笔记（2） - 变量的解构赋值"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="es6-函数的扩展"><a href="#es6-函数的扩展" class="headerlink" title="es6 函数的扩展"></a>es6 函数的扩展</h1><h3 id="1-函数参数的默认值"><a href="#1-函数参数的默认值" class="headerlink" title="1. 函数参数的默认值"></a>1. 函数参数的默认值</h3><ul>
+<li><strong>基本用法</strong></li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">log</span>(<span class="params">x, y = <span class="string">&#x27;World&#x27;</span></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(x, y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">log</span>(<span class="string">&#x27;Hello&#x27;</span>) <span class="comment">// Hello World</span></span><br><span class="line"><span class="title function_">log</span>(<span class="string">&#x27;Hello&#x27;</span>, <span class="string">&#x27;China&#x27;</span>) <span class="comment">// Hello China</span></span><br><span class="line"><span class="title function_">log</span>(<span class="string">&#x27;Hello&#x27;</span>, <span class="string">&#x27;&#x27;</span>) <span class="comment">// Hello</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 在构造函数里使用</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Point</span>(<span class="params">x = <span class="number">0</span>, y = <span class="number">0</span></span>)&#123;</span><br><span class="line">	<span class="variable language_">this</span>.<span class="property">x</span> = x</span><br><span class="line">	<span class="variable language_">this</span>.<span class="property">y</span> = y</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> <span class="title class_">Point</span>()</span><br><span class="line">p <span class="comment">// &#123;x: 0, y: 0&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>和解构赋值默认值结合使用</strong></li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 写法一</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">m1</span>(<span class="params">&#123;x = <span class="number">0</span>, y = <span class="number">0</span>&#125; = &#123;&#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> [x, y];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写法二</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">m2</span>(<span class="params">&#123;x, y&#125; = &#123; x: <span class="number">0</span>, y: <span class="number">0</span> &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> [x, y];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>参数作用域</strong></li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">一旦设置了参数的默认值，函数进行声明初始化时，参数会形成一个单独的作用域（context）。</span><br><span class="line">等到初始化结束，这个作用域就会消失。</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数foo的参数形成一个单独作用域， y的默认值内部的变量x，指向同一个作用域的第一个参数x</span></span><br><span class="line"><span class="comment">// 如果将var x = 3的var去除，函数foo的内部变量x就指向第一个参数x，</span></span><br><span class="line"><span class="comment">// 与匿名函数内部的x是一致的，所以最后输出的就是2，而外层的全局变量x依然不受影响。</span></span><br><span class="line"><span class="keyword">var</span> x = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params">x, y = <span class="keyword">function</span>() &#123; x = <span class="number">2</span>; &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> x = <span class="number">3</span>;</span><br><span class="line">  <span class="title function_">y</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(x);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">foo</span>() <span class="comment">// 3</span></span><br><span class="line">x <span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<p>这两种写法都对函数的参数设置了默认值，区别是写法一函数的参数的默认值是空对象，但是设置了对象的解构赋值的默认值；写法二函数参数的默认值是一个有具体属性的对象，但是没有设置对象的解构赋值的默认值。</p>
+<h3 id="2-rest参数"><a href="#2-rest参数" class="headerlink" title="2. rest参数"></a>2. rest参数</h3><p>rest 参数（形式为<code>...变量名</code>），用于获取函数的多余参数，rest 参数搭配的变量是一个数组，该变量将多余的参数放入数组中</p>
+<p>利用rest 参数改写数组 push 方法</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">push</span>(<span class="params">array, ...items</span>)&#123;</span><br><span class="line">	items.<span class="title function_">forEach</span>(<span class="function">(<span class="params">item</span>) =&gt;</span> &#123;</span><br><span class="line">		array.<span class="title function_">push</span>(item)</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> a = []</span><br><span class="line"><span class="title function_">push</span>(a,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-严格模式"><a href="#3-严格模式" class="headerlink" title="3. 严格模式"></a>3. 严格模式</h3><p>只要函数参数使用了默认值、解构赋值、或者扩展运算符，那么函数内部就不能现实设定为严格模式，否则会报错。</p>
+<p>这样规定的原因是：<strong>函数内部的严格模式，同时适用于函数体和函数参数。但是，函数执行的时候，先执行函数参数，然后再执行函数体。这样就有一个不合理的地方，只有从函数体之中，才能知道参数是否应该以严格模式执行，但是参数却应该先于函数体执行。</strong></p>
+<p>解决方法： <strong>1. 设定全局性的严格模式    2. 在外层包一层无参数的立即执行函数</strong> </p>
+<h3 id="4-name-属性"><a href="#4-name-属性" class="headerlink" title="4. name 属性"></a>4. name 属性</h3><p>函数的那么属性，返回该函数的函数名</p>
+<h3 id="5-箭头函数"><a href="#5-箭头函数" class="headerlink" title="5. 箭头函数"></a>5. 箭头函数</h3><ul>
+<li>基本用法 （ &#x3D;&gt;）</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//下面是 rest 参数与箭头函数结合的例子。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">numbers</span> = (<span class="params">...nums</span>) =&gt; nums;</span><br><span class="line"></span><br><span class="line"><span class="title function_">numbers</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)</span><br><span class="line"><span class="comment">// [1,2,3,4,5]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">headAndTail</span> = (<span class="params">head, ...tail</span>) =&gt; [head, tail];</span><br><span class="line"></span><br><span class="line"><span class="title function_">headAndTail</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)</span><br><span class="line"><span class="comment">// [1,[2,3,4,5]]</span></span><br></pre></td></tr></table></figure>
+
+<p>注意⚠️：</p>
+<ul>
+<li>没有自己的<code>this</code>，函数体内的 <code>this</code> 对象就是定义时上层作用域中的<code>this</code> 指向是固定的</li>
+<li>不可以当作构造函数，也就是说，不可以使用<code>new</code>命令</li>
+<li>不可以使用<code>arguments</code>对象，该对象在函数体内不存在。可用rest参数代替</li>
+<li>不能使用<code>yield</code>命令，因此不能用作 Generator 函数</li>
+</ul>
+<p><strong>举个不适用箭头函数的🌰：</strong></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">globalThis.<span class="property">s</span> = <span class="number">21</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> obj = &#123;</span><br><span class="line">  <span class="attr">s</span>: <span class="number">42</span>,</span><br><span class="line">  <span class="attr">m</span>: <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">s</span>)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.<span class="title function_">m</span>() <span class="comment">// 21</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个为什么输出 21 因为对象不构成单独的作用域</span></span><br><span class="line"><span class="comment">// js 引擎处理方式是下面这样</span></span><br><span class="line"></span><br><span class="line">globalThis.<span class="property">s</span> = <span class="number">21</span>;</span><br><span class="line">globalThis.<span class="property">m</span> = <span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">s</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> obj = &#123;</span><br><span class="line">  <span class="attr">s</span>: <span class="number">42</span>,</span><br><span class="line">  <span class="attr">m</span>: globalThis.<span class="property">m</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.<span class="title function_">m</span>() <span class="comment">// 21</span></span><br></pre></td></tr></table></figure>
+
+<p>所以 </p>
+<ol>
+<li><p>定义对象的方法，且该方法内部包括<code>this</code> 建议不要使用箭头函数定义。</p>
+</li>
+<li><p>需要动态<code>this</code>的时候，也不应使用箭头函数。</p>
+</li>
+</ol>
+<ul>
+<li></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/">https://zhaoqianguo.github.io/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ES6/">ES6</a><a class="post-meta__tags" href="/tags/es6/">es6</a></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/06/01/ES6/ES6_2_%E5%8F%98%E9%87%8F%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%8B%E5%80%BC/"><img class="next-cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ES6 学习笔记（2） - 变量的解构赋值</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/05/28/ES6/ES6_1_let_const/" title="ES6 学习笔记（1） - let 和 const"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-4.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-28</div><div class="title">ES6 学习笔记（1） - let 和 const</div></div></a></div><div><a href="/2022/06/01/ES6/ES6_2_%E5%8F%98%E9%87%8F%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%8B%E5%80%BC/" title="ES6 学习笔记（2） - 变量的解构赋值"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-01</div><div class="title">ES6 学习笔记（2） - 变量的解构赋值</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#es6-%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95"><span class="toc-text">es6 函数的扩展</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC"><span class="toc-text">1. 函数参数的默认值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-rest%E5%8F%82%E6%95%B0"><span class="toc-text">2. rest参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%A5%E6%A0%BC%E6%A8%A1%E5%BC%8F"><span class="toc-text">3. 严格模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-name-%E5%B1%9E%E6%80%A7"><span class="toc-text">4. name 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0"><span class="toc-text">5. 箭头函数</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/" title="ES6 学习笔记（2） - 变量的解构赋值"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（2） - 变量的解构赋值"/></a><div class="content"><a class="title" href="/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/" title="ES6 学习笔记（2） - 变量的解构赋值">ES6 学习笔记（2） - 变量的解构赋值</a><time datetime="2022-06-01T14:31:46.000Z" title="发表于 2022-06-01 22:31:46">2022-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/01/ES6/ES6_2_%E5%8F%98%E9%87%8F%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%8B%E5%80%BC/" title="ES6 学习笔记（2） - 变量的解构赋值"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（2） - 变量的解构赋值"/></a><div class="content"><a class="title" href="/2022/06/01/ES6/ES6_2_%E5%8F%98%E9%87%8F%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%8B%E5%80%BC/" title="ES6 学习笔记（2） - 变量的解构赋值">ES6 学习笔记（2） - 变量的解构赋值</a><time datetime="2022-06-01T14:31:46.000Z" title="发表于 2022-06-01 22:31:46">2022-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/05/28/ES6/ES6_1_let_const/" title="ES6 学习笔记（1） - let 和 const"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-4.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（1） - let 和 const"/></a><div class="content"><a class="title" href="/2022/05/28/ES6/ES6_1_let_const/" title="ES6 学习笔记（1） - let 和 const">ES6 学习笔记（1） - let 和 const</a><time datetime="2022-05-28T14:31:46.000Z" title="发表于 2022-05-28 22:31:46">2022-05-28</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
