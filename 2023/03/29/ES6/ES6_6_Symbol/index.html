@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>大西瓜的博客 | 大西瓜的博客</title><meta name="keywords" content="大西瓜"><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Symbol1. 概述一种新的原始数据类型 Symbol ，表示独一无二的值。Symbol 值通过 Symbol()函数生成，也就是现在对象的属性名有两种类型，一种是字符串，一种是 Symbol 类型。 1234let s &#x3D; Symbol();typeof s; &#x2F;&#x2F; &quot;symbol&quot;&#x2F;&#x2F; 变量s就是一个独一无二的值  Symbol()函数可以接受一个字符串作为参数，表示对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大西瓜的博客">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2023/03/29/ES6/ES6_6_Symbol/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="Symbol1. 概述一种新的原始数据类型 Symbol ，表示独一无二的值。Symbol 值通过 Symbol()函数生成，也就是现在对象的属性名有两种类型，一种是字符串，一种是 Symbol 类型。 1234let s &#x3D; Symbol();typeof s; &#x2F;&#x2F; &quot;symbol&quot;&#x2F;&#x2F; 变量s就是一个独一无二的值  Symbol()函数可以接受一个字符串作为参数，表示对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png">
+<meta property="article:published_time" content="2023-03-29T13:00:57.987Z">
+<meta property="article:modified_time" content="2023-03-29T13:01:21.538Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="大西瓜">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2023/03/29/ES6/ES6_6_Symbol/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '大西瓜的博客',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-03-29 21:01:21'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">大西瓜的博客</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">无题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2023-03-29T13:00:57.987Z" title="发表于 2023-03-29 21:00:57">2023-03-29</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Symbol"><a href="#Symbol" class="headerlink" title="Symbol"></a>Symbol</h1><h3 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h3><p>一种新的原始数据类型 <code>Symbol</code> ，表示独一无二的值。Symbol 值通过 <code>Symbol()</code>函数生成，也就是现在对象的属性名有两种类型，一种是字符串，一种是 Symbol 类型。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> s = <span class="title class_">Symbol</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">typeof</span> s; <span class="comment">// &quot;symbol&quot;</span></span><br><span class="line"><span class="comment">// 变量s就是一个独一无二的值</span></span><br></pre></td></tr></table></figure>
+
+<p><code>Symbol()</code>函数可以接受一个字符串作为参数，表示对 Symbol 实例的描述。便于区分</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> s1 = <span class="title class_">Symbol</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> s2 = <span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>);</span><br><span class="line"></span><br><span class="line">s1; <span class="comment">// Symbol(foo)</span></span><br><span class="line">s2; <span class="comment">// Symbol(bar)</span></span><br><span class="line"></span><br><span class="line">s1.<span class="title function_">toString</span>(); <span class="comment">// &quot;Symbol(foo)&quot;</span></span><br><span class="line">s2.<span class="title function_">toString</span>(); <span class="comment">// &quot;Symbol(bar)&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 即使参数相同，两个值也不相同</span></span><br><span class="line"><span class="keyword">let</span> s1 = <span class="title class_">Symbol</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> s2 = <span class="title class_">Symbol</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"></span><br><span class="line">s1 === s2; <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+
+<aside>
+💡 Symbol 值可以显示的转为字符串 和布尔值，但是不能转数值
+
+</aside>
+
+<h3 id="2-Symbol-prototype-description"><a href="#2-Symbol-prototype-description" class="headerlink" title="2. Symbol.prototype.description"></a>2. <strong>Symbol.prototype.description</strong></h3><p><a target="_blank" rel="noopener" href="https://github.com/tc39/proposal-Symbol-description">ES2019</a>提供了一个 Symbol 值的实例属性<code>description</code>，直接返回 Symbol 值的描述。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sym = <span class="title class_">Symbol</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"></span><br><span class="line">sym.<span class="property">description</span>; <span class="comment">// &quot;foo&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-属性名的遍历"><a href="#3-属性名的遍历" class="headerlink" title="3. 属性名的遍历"></a>3. <strong>属性名的遍历</strong></h3><p>Symbol 值作为属性名，遍历对象的时候，该属性不会出现在<code>for...in</code>、<code>for...of</code>循中，也不会被<code>Object.keys()</code>、<code>Object.getOwnPropertyNames()</code>、<code>JSON.stringify()</code>返回。</p>
+<p>可以使用 <code>Object.getOwnPropertySymbols()</code></p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> obj = &#123;&#125;;</span><br><span class="line"><span class="keyword">let</span> a = <span class="title class_">Symbol</span>(<span class="string">&quot;a&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> b = <span class="title class_">Symbol</span>(<span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">obj[a] = <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line">obj[b] = <span class="string">&quot;World&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> objectSymbols = <span class="title class_">Object</span>.<span class="title function_">getOwnPropertySymbols</span>(obj);</span><br><span class="line"></span><br><span class="line">objectSymbols;</span><br><span class="line"><span class="comment">// [Symbol(a), Symbol(b)]</span></span><br></pre></td></tr></table></figure>
+
+<p><code>Reflect.ownKeys()</code> 也可以</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;</span><br><span class="line">  [<span class="title class_">Symbol</span>(<span class="string">&quot;my_key&quot;</span>)]: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">enum</span>: <span class="number">2</span>,</span><br><span class="line">  <span class="attr">nonEnum</span>: <span class="number">3</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Reflect</span>.<span class="title function_">ownKeys</span>(obj);</span><br><span class="line"><span class="comment">//  [&quot;enum&quot;, &quot;nonEnum&quot;, Symbol(my_key)]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-Symbol-for-，Symbol-keyFor"><a href="#4-Symbol-for-，Symbol-keyFor" class="headerlink" title="4. Symbol.for()，Symbol.keyFor()"></a>4. <strong>Symbol.for()，Symbol.keyFor()</strong></h3><ul>
+<li><code>Symbol.for()</code>与<code>Symbol()</code>这两种写法，都会生成新的 Symbol。它们的区别是，前者会被登记在全局环境中供搜索，找到就会返回该值。后者不会，每次调用都会产生新值</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>);</span><br><span class="line"><span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>Symbol.keyFor()</code>方法返回一个已登记的 Symbol 类型值的<code>key</code></li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> s1 = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(s1); <span class="comment">// &quot;foo&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> s2 = <span class="title class_">Symbol</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(s2); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>Symbol.for()</code>为 Symbol 值登记的名字，是全局环境的，不管有没有在全局环境运行。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2023/03/29/ES6/ES6_6_Symbol/">https://zhaoqianguo.github.io/2023/03/29/ES6/ES6_6_Symbol/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/03/29/ES6/ES6_7_Set%E5%92%8CMap%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"><img class="prev-cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info"></div></div></a></div><div class="next-post pull-right"><a href="/2023/03/29/ES6/ES6_5_%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E6%96%B9%E6%B3%95%E5%8F%8A%E8%BF%90%E7%AE%97%E7%AC%A6%E6%89%A9%E5%B1%95/"><img class="next-cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info"></div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Symbol"><span class="toc-number">1.</span> <span class="toc-text">Symbol</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="toc-number">1.0.1.</span> <span class="toc-text">1. 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Symbol-prototype-description"><span class="toc-number">1.0.2.</span> <span class="toc-text">2. Symbol.prototype.description</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%B1%9E%E6%80%A7%E5%90%8D%E7%9A%84%E9%81%8D%E5%8E%86"><span class="toc-number">1.0.3.</span> <span class="toc-text">3. 属性名的遍历</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Symbol-for-%EF%BC%8CSymbol-keyFor"><span class="toc-number">1.0.4.</span> <span class="toc-text">4. Symbol.for()，Symbol.keyFor()</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/03/29/ES6/ES6_8_Proxy/" title="无题"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无题"/></a><div class="content"><a class="title" href="/2023/03/29/ES6/ES6_8_Proxy/" title="无题">无题</a><time datetime="2023-03-29T13:08:22.347Z" title="发表于 2023-03-29 21:08:22">2023-03-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/03/29/ES6/ES6_7_Set%E5%92%8CMap%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="无题"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无题"/></a><div class="content"><a class="title" href="/2023/03/29/ES6/ES6_7_Set%E5%92%8CMap%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="无题">无题</a><time datetime="2023-03-29T13:02:23.604Z" title="发表于 2023-03-29 21:02:23">2023-03-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/03/29/ES6/ES6_6_Symbol/" title="无题"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无题"/></a><div class="content"><a class="title" href="/2023/03/29/ES6/ES6_6_Symbol/" title="无题">无题</a><time datetime="2023-03-29T13:00:57.987Z" title="发表于 2023-03-29 21:00:57">2023-03-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/03/29/ES6/ES6_5_%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E6%96%B9%E6%B3%95%E5%8F%8A%E8%BF%90%E7%AE%97%E7%AC%A6%E6%89%A9%E5%B1%95/" title="无题"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无题"/></a><div class="content"><a class="title" href="/2023/03/29/ES6/ES6_5_%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E6%96%B9%E6%B3%95%E5%8F%8A%E8%BF%90%E7%AE%97%E7%AC%A6%E6%89%A9%E5%B1%95/" title="无题">无题</a><time datetime="2023-03-29T12:59:57.568Z" title="发表于 2023-03-29 20:59:57">2023-03-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/03/29/ES6/ES6_4_%E6%95%B0%E7%BB%84%E5%8F%8A%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%89%A9%E5%B1%95/" title="无题"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="无题"/></a><div class="content"><a class="title" href="/2023/03/29/ES6/ES6_4_%E6%95%B0%E7%BB%84%E5%8F%8A%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%89%A9%E5%B1%95/" title="无题">无题</a><time datetime="2023-03-29T12:57:58.187Z" title="发表于 2023-03-29 20:57:58">2023-03-29</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
