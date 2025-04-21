@@ -1,0 +1,443 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>《图解 HTTP》 学习笔记 | 大西瓜的博客</title><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言本书对互联网基盘——HTTP 协议进行了全面系统的介绍。作者由 HTTP 协议的发展历史娓娓道来，严谨细致地剖析了 HTTP 协议的结构，列举诸多常见通信场景及实战案例，最后延伸到 Web 安全、最新技术动向等方面。本书的特色为在讲解的同时，辅以大量生动形象的通信图例，更好地帮助读者深刻理解 HTTP 通信过程中客户端与服务器之间的交互情况。读者可通过本书快速了解并掌握 HTTP 协议的基础，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《图解 HTTP》 学习笔记">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="前言本书对互联网基盘——HTTP 协议进行了全面系统的介绍。作者由 HTTP 协议的发展历史娓娓道来，严谨细致地剖析了 HTTP 协议的结构，列举诸多常见通信场景及实战案例，最后延伸到 Web 安全、最新技术动向等方面。本书的特色为在讲解的同时，辅以大量生动形象的通信图例，更好地帮助读者深刻理解 HTTP 通信过程中客户端与服务器之间的交互情况。读者可通过本书快速了解并掌握 HTTP 协议的基础，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png">
+<meta property="article:published_time" content="2022-08-24T04:41:23.000Z">
+<meta property="article:modified_time" content="2025-04-18T03:54:03.205Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '《图解 HTTP》 学习笔记',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-04-18 11:54:03'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png')"><nav id="nav"><span id="blog-info"><a href="/" title="大西瓜的博客"><span class="site-name">大西瓜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">《图解 HTTP》 学习笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2022-08-24T04:41:23.000Z" title="发表于 2022-08-24 12:41:23">2022-08-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BD%91%E7%BB%9C/HTTP/">HTTP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="《图解 HTTP》 学习笔记"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本书对互联网基盘——HTTP 协议进行了全面系统的介绍。作者由 HTTP 协议的发展历史娓娓道来，严谨细致地剖析了 HTTP 协议的结构，列举诸多常见通信场景及实战案例，最后延伸到 Web 安全、最新技术动向等方面。本书的特色为在讲解的同时，辅以大量生动形象的通信图例，更好地帮助读者深刻理解 HTTP 通信过程中客户端与服务器之间的交互情况。读者可通过本书快速了解并掌握 HTTP 协议的基础，前端工程师分析抓包数据，后端工程师实现 REST API、实现自己的 HTTP 服务器等过程中所需的 HTTP 相关知识点本书均有介绍。</p>
+<p>本书适合 Web 开发工程师，以及对 HTTP 协议感兴趣的各层次读者。</p>
+<h2 id="第一章、了解-WEB-及网络基础"><a href="#第一章、了解-WEB-及网络基础" class="headerlink" title="第一章、了解 WEB 及网络基础"></a>第一章、了解 WEB 及网络基础</h2><p><strong>HTTP 的诞生</strong></p>
+<p>1989 年 3 月，HTTP 诞生了，最初设想的理念是：借助多文本之间互相关联形成的超文本，连成 WWW。</p>
+<p><strong>Web 成长时代</strong></p>
+<p>1990 年 11 月，CERN 研发了世界上第一台 WEB 服务器。</p>
+<p>1990 年，大家针对 HTML1.0 草案进行讨论，因存在多处模糊的地方，草案被直接废弃。</p>
+<p>1992 年 9 月，日本第一个<a target="_blank" rel="noopener" href="http://www.ibarakiken.gr.jp/www/">网站</a>的主页上线了。</p>
+<p>1993 年 1 月，现代浏览器的祖先 <a target="_blank" rel="noopener" href="http://archive.ncsa.illinois.edu/mosaic.html">Mosaic</a> 问世，它以内联等形式显示 HTML 的图像，迅速在世界范围内流行开来。</p>
+<p>1994 年 12 月，网景公司发布 Netscape Navigator 1.0。</p>
+<p>1995 年，微软发布了 Internet Explorer 1.0 和 2.0。</p>
+<p><strong>驻足不前的 HTTP</strong></p>
+<p>HTTP 0.9 ：因为那时的 HTTP 并没有正式的标准被建立，所有含有 HTTP 1.0 之前版本的意思。</p>
+<p>HTTP 1.0 ：1996 年 5 月正式作为标准被公布，并记载于 <a target="_blank" rel="noopener" href="https://www.ietf.org/rfc/rfc1945.txt">RFC1945</a>。</p>
+<p>HTTP 1.1 ：1997 年 1 月公布，最新标准版本为 <a target="_blank" rel="noopener" href="https://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>。</p>
+<p><strong>网络基础 TCP&#x2F;IP</strong></p>
+<p>通常使用的网络（包括互联网）是在 TCP&#x2F;IP 协议族的基础上运作的。而 HTTP 属于它内部的一个子集。</p>
+<p><strong>TCP&#x2F;IP 协议族</strong></p>
+<p>TCP&#x2F;IP 是互联网相关的各类协议族的总称。</p>
+<p><strong>TCP&#x2F;IP 的分层管理</strong></p>
+<p>分为四层：</p>
+<ul>
+<li>应用层：决定了向用户提供应用服务时通信的活动，例如：FTP、DNS、HTTP。</li>
+<li>传输层：提供处于网络连接中的两台计算机之间的数据传输，TCP、UDP。</li>
+<li>网络层：处理在网络上流动的数据包，规定传输路线。</li>
+<li>数据链路层：处理连接网络的硬件部分。包括控制操作系统、硬件的设备驱动、网卡及光纤等物理可见部分。</li>
+</ul>
+<p>分层的好处：把各层之间的接口部分规划好后，修改某个地方时只需修改对应的层，每个层次内部不影响其他层。</p>
+<p><strong>TCP&#x2F;IP 通信传输流</strong></p>
+<p><img src="/../../assets/images/http/image.png" alt="alt text"></p>
+<p>HTTP 举例：</p>
+<p><img src="/../../assets/images/http/image1.png" alt="alt text"></p>
+<p><strong>与 HTTP 关系密切的协议 : IP、TCP 和 DNS</strong></p>
+<ul>
+<li>负责传输的 IP 协议</li>
+</ul>
+<p><img src="/../../assets/images/http/image2.png" alt="alt text"></p>
+<ul>
+<li>确保可靠性的 TCP 协议</li>
+</ul>
+<p><img src="/../../assets/images/http/image3.png" alt="alt text"></p>
+<ul>
+<li>负责域名解析的 DNS 服务</li>
+</ul>
+<p><img src="/../../assets/images/http/image4.png" alt="alt text"></p>
+<p><strong>各种协议与 HTTP 协议的关系</strong></p>
+<p><img src="/../../assets/images/http/image5.png" alt="alt text"></p>
+<h2 id="第二章、简单的-HTTP-协议"><a href="#第二章、简单的-HTTP-协议" class="headerlink" title="第二章、简单的 HTTP 协议"></a>第二章、简单的 HTTP 协议</h2><p>HTTP 协议用于客户端和服务器之间的通信，请求资源方成为客户端，提供资源响应方成为服务器端。</p>
+<p>请求报文是由请求方法、请求 URI、协议版本、可选的请求首部字段和内容实体构成的。</p>
+<p>请求报文的构成：</p>
+<p><img src="/../../assets/images/http/image6.png" alt="alt text"></p>
+<p>响应报文的构成：</p>
+<p><img src="/../../assets/images/http/image7.png" alt="alt text"></p>
+<p><strong>HTTP 是不保存状态的协议</strong></p>
+<p>HTTP 是一个无状态协议，自身不具备保存之前发送过的请求或响应的功能。</p>
+<p>之后随着发展，引入了 Cookie 技术。</p>
+<p><strong>请求 URI 定位资源</strong></p>
+<p>HTTP 协议使用 URI 定位互联网上的资源。正是因为 URI 的特定功能，在互联网上任意位置的资源都能访问到。</p>
+<p><strong>告知服务器意图的 HTTP 方法</strong></p>
+<p><img src="/../../assets/images/http/image8.png" alt="alt text"></p>
+<p><strong>持久连接节省通信量</strong></p>
+<p>HTTP 协议的初始版本中，每进行一次 HTTP 通信就要断开一次 TCP 连接。</p>
+<p><strong>持久连接</strong></p>
+<p>为解决上述 TCP 连接的问题，HTTP&#x2F;1.1 和一部分的 HTTP&#x2F;1.0 想出了持久连接的方法。</p>
+<p>持久连接的特点是，只要任意一端没有明确提出断开连接，则保持 TCP 连接状态。</p>
+<p>好处在于减少了 TCP 连接的重复建立和断开所造成的额外开销，减轻了服务器端的负载。</p>
+<p><strong>管线化</strong></p>
+<p>管线化技术出现后，能够做到同时并行发送多个请求，而不需要一个接一个地等待响应了。</p>
+<p><strong>使用 Cookie 的状态管理</strong></p>
+<p>Cookie 技术通过在请求和响应报文中写入 Cookie 信息来控制客户端的状态。</p>
+<p>Cookie 会根据从服务器端发送的响应报文内的一个叫做 Set-Cookie 的首部字段信息，通知客户端保存 Cookie。当下次客户端再往该服务器发送请求时，客户端会自动在请求报文中加入 Cookie 值后发送出去。</p>
+<p>服务器端发现客户端发送过来的 Cookie 后，会去检查究竟是从哪一个客户端发来的连接请求，然后对比服务器上的记录，最后得到之前的状态信息。</p>
+<h2 id="第三章、HTTP-报文内的-HTTP-信息"><a href="#第三章、HTTP-报文内的-HTTP-信息" class="headerlink" title="第三章、HTTP 报文内的 HTTP 信息"></a>第三章、HTTP 报文内的 HTTP 信息</h2><p><strong>HTTP 报文</strong></p>
+<p>用于 HTTP 协议交互的信息被称为 HTTP 报文。</p>
+<p>HTTP 报文本身是由多行（用 CR+LF 作换行符）数据构成的字符串文本。</p>
+<p>HTTP 报文大致可分为报文首部和报文主体两块，通常，并不一定要有报文主体。</p>
+<p><img src="/../../assets/images/http/image9.png" alt="alt text"></p>
+<p><strong>结构</strong></p>
+<p><img src="/../../assets/images/http/image10.png" alt="alt text"></p>
+<p><strong>实例</strong></p>
+<p><img src="/../../assets/images/http/image11.png" alt="alt text"></p>
+<p><strong>编码提升传输速率</strong></p>
+<p>HTTP 在传输时可以原样直接传输，也可以在传输时通过编码提升传输速率，通过编码，能有效地处理大量的访问请求，但也消耗更多的 CPU 等资源。</p>
+<p><strong>报文主体和实体主体的差异</strong></p>
+<ul>
+<li>报文：HTTP 通信中的基本单位，由 8 位组字节流组成，通过 HTTP 通信传输。</li>
+<li>实体：作为请求或响应的有效载荷数据（补充项）被传输，其内容由实体首部和实体主体组成。</li>
+</ul>
+<p><strong>压缩传输的内容编码</strong></p>
+<p>常用的内容编码有以下几种：</p>
+<ul>
+<li>gzip（GNU zip）</li>
+<li>compress（UNIX 系统的标准压缩）</li>
+<li>deflate（zlib）</li>
+<li>identity（不进行编码）</li>
+</ul>
+<p><strong>分割发送的分块传输编码</strong></p>
+<p>在传输大容量数据时，通过把数据分割成多块，能够让浏览器逐步显示页面，这种把实体主体分块的功能称为分块传输编码。</p>
+<p>分块传输编码会将实体主体分成多个部分（块）。每一块都会用十六进制来标记块的大小，而实体主体的最后一块会使用“0(CR+LF)”来标记。</p>
+<p><strong>发送多种数据的多部分对象集合</strong></p>
+<p>发送的一份报文主体内可含有多类型实体。通常是在图片或文本文件等上传时使用。</p>
+<p>多部分对象集合包含的对象如下：</p>
+<ul>
+<li>multipart&#x2F;form-data：在 Web 表单文件上传时使用。</li>
+<li>multipart&#x2F;byteranges：状态码 206，响应报文包含了多个范围的内容时使用。</li>
+</ul>
+<p><strong>获取部分内容的范围请求</strong></p>
+<p>为了解决加载超大图片导致网络中断的情况而实现的一种手段，叫做范围请求。</p>
+<p>对一份 10 000 字节大小的资源，如果使用范围请求，可以只请求 5001~10 000 字节内的资源。</p>
+<p><img src="/../../assets/images/http/image12.png" alt="alt text"></p>
+<p><strong>内容协商返回最合适的内容</strong></p>
+<p>当浏览器的默认语言为英语或中文，访问相同 URI 的 Web 页面时，则会显示对应的英语版或中文版的 Web 页面。这样的机制称为内容协商。</p>
+<h2 id="第四章、返回结果的状态码"><a href="#第四章、返回结果的状态码" class="headerlink" title="第四章、返回结果的状态码"></a>第四章、返回结果的状态码</h2><p>HTTP 状态码负责表示客户端 HTTP 请求的返回结果、标记服务器端的处理是否正常、通知出现的错误等工作。</p>
+<p><strong>状态码类别</strong>：</p>
+<p><img src="/../../assets/images/http/image13.png" alt="alt text"></p>
+<p>更多：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status">HTTP 响应代码</a></p>
+<h2 id="第五章、与-HTTP-协作的-Web-服务器"><a href="#第五章、与-HTTP-协作的-Web-服务器" class="headerlink" title="第五章、与 HTTP 协作的 Web 服务器"></a>第五章、与 HTTP 协作的 Web 服务器</h2><p><strong>用单台虚拟主机实现多个域名</strong></p>
+<p>即便物理层面只有一台服务器，但只要使用虚拟主机的功能，则可以搭建多个站点。</p>
+<p><strong>通信数据转发程序：代理、网关、隧道</strong></p>
+<p>HTTP 通信时，除客户端和服务器以外，还有一些用于通信数据转发的应用程序：</p>
+<ul>
+<li><p>代理：一种有转发功能的应用程序，扮演了服务器和客户端中间人的角色。</p>
+</li>
+<li><p>网关：转发其他服务器通信数据的服务器，它就像自己拥有资源的源服务器一样对请求进行处理。</p>
+</li>
+<li><p>隧道：将相隔甚远的客户端和服务器两者之间进行中转，并保持双方通信连接的应用程序。</p>
+<p><strong>保存资源的缓存</strong></p>
+</li>
+</ul>
+<p>缓存是指代理服务器或客户端本地磁盘内保存的资源副本。利用缓存可减少对源服务器的访问，因此也就节省了通信流量和通信时间。</p>
+<p><strong>客户端的缓存</strong></p>
+<p>缓存不仅可以存在于缓存服务器内，还可以存在客户端浏览器中。以 Internet Explorer 程序为例，把客户端缓存称为临时网络文件。</p>
+<h2 id="第六章、HTTP-首部"><a href="#第六章、HTTP-首部" class="headerlink" title="第六章、HTTP 首部"></a>第六章、HTTP 首部</h2><p><strong>注：这部分太多解释，建议看原文</strong></p>
+<p><img src="/../../assets/images/http/image14.png" alt="alt text"></p>
+<p><strong>HTTP 请求报文</strong></p>
+<p>在请求中，HTTP 报文由方法、URI、HTTP 版本、HTTP 首部字段等部分构成</p>
+<p><img src="/../../assets/images/http/image15.png" alt="alt text"></p>
+<p><strong>HTTP 响应报文</strong></p>
+<p>在响应中，HTTP 报文由 HTTP 版本、状态码（数字和原因短语）、HTTP 首部字段 3 部分构成。</p>
+<p><img src="/../../assets/images/http/image16.png" alt="alt text"></p>
+<p><strong>HTTP&#x2F;1.1 首部字段一览</strong></p>
+<p>通用首部字段：</p>
+<p><img src="/../../assets/images/http/image17.png" alt="alt text"></p>
+<p>请求首部字段：</p>
+<p><img src="/../../assets/images/http/image18.png" alt="alt text"></p>
+<p>响应首部字段：</p>
+<p><img src="/../../assets/images/http/image19.png" alt="alt text"></p>
+<p>实体首部字段：</p>
+<p><img src="/../../assets/images/http/image20.png" alt="alt text"></p>
+<h2 id="第七章、HTTP-的缺点"><a href="#第七章、HTTP-的缺点" class="headerlink" title="第七章、HTTP 的缺点"></a>第七章、HTTP 的缺点</h2><p>主要的不足，例举如下：</p>
+<ul>
+<li>通信使用明文（不加密），内容可能会被窃听（例如：抓包）</li>
+<li>不验证通信方的身份，因此有可能遭遇伪装（例如：DoS）</li>
+<li>无法证明报文的完整性，所以有可能已遭篡改（例如：中间人攻击）</li>
+</ul>
+<p><strong>HTTP+ 加密 + 认证 + 完整性保护&#x3D;HTTPS</strong></p>
+<p>为了统一解决上述这些问题，需要在 HTTP 等机制。我们把添加了加密及认证机制的称为 HTTPS。</p>
+<p><strong>使用 HTTPS 通信</strong></p>
+<p>经常会在 Web 的登录页面和购物结算界面等使用 HTTPS 通信。</p>
+<p><strong>HTTPS 是身披 SSL 外壳的 HTTP</strong></p>
+<p>HTTPS 并非是应用层的一种新协议。只是 HTTP 通信接口部分用 SSL 和 TLS 协议代替而已。</p>
+<p>简言之，所谓 HTTPS，其实就是身披 SSL 协议这层外壳的 HTTP。</p>
+<p><img src="/../../assets/images/http/image21.png" alt="alt text"></p>
+<p>SSL 是独立于 HTTP 的协议，所以不光是 HTTP 协议，其他运行在应用层的 SMTP 和 Telnet 等协议均可配合 SSL 协议使用。可以说 SSL 是当今世界上应用最为广泛的网络安全技术。</p>
+<p><strong>相互交换密钥的公开密钥加密技术</strong></p>
+<p>SSL 采用一种叫做公开密钥加密（非对称加密）的加密处理方式。</p>
+<p><strong>HTTPS 的安全通信机制</strong></p>
+<p>通信步骤：</p>
+<p><img src="/../../assets/images/http/image22.png" alt="alt text"></p>
+<p><strong>SSL 速度慢吗</strong></p>
+<p>HTTPS 也存在一些问题，那就是当使用 SSL 时，它的处理速度会变慢。</p>
+<p>HTTPS 比 HTTP 要慢 2 到 100 倍，因为与纯文本通信相比，加密通信会消耗更多的 CPU 及内存资源。如果每次通信都加密，会消耗相当多的资源，平摊到一台计算机上时，能够处理的请求数量必定也会随之减少。</p>
+<h2 id="第八章、确认访问用户身份的认证"><a href="#第八章、确认访问用户身份的认证" class="headerlink" title="第八章、确认访问用户身份的认证"></a>第八章、确认访问用户身份的认证</h2><p><strong>何为认证</strong></p>
+<p>服务器为了确认用户的身份，通常需要核对一些信息：</p>
+<ul>
+<li>密码</li>
+<li>动态令牌</li>
+<li>数字证书</li>
+<li>生物认证</li>
+<li>IC 卡</li>
+</ul>
+<p><strong>HTTP 使用的认证方式</strong></p>
+<ul>
+<li>BASIC 认证（基本认证）</li>
+<li>DIGEST 认证（摘要认证）</li>
+<li>SSL 客户端认证</li>
+<li>FormBase 认证（基于表单认证）</li>
+</ul>
+<h2 id="第九章、基于-HTTP-的功能追加协议"><a href="#第九章、基于-HTTP-的功能追加协议" class="headerlink" title="第九章、基于 HTTP 的功能追加协议"></a>第九章、基于 HTTP 的功能追加协议</h2><p><strong>消除 HTTP 瓶颈的 SPDY</strong></p>
+<p>Google 在 2010 年发布了 <a target="_blank" rel="noopener" href="http://www.chromium.org/spdy/">SPDY</a>（取自 SPeeDY，发音同 speedy），其开发目标旨在解决 HTTP 的性能瓶颈，缩短 Web 页面的加载时间（50%）。</p>
+<p><strong>SPDY 的目标</strong></p>
+<p>陆续出现的 Ajax 和 Comet 等提高易用性的技术，一定程度上使 HTTP 得到了改善，但 HTTP 协议本身的限制也令人有些束手无策。为了进行根本性的改善，需要有一些协议层面上的改动。</p>
+<p>处于持续开发状态中的 SPDY 协议，正是为了在协议级别消除 HTTP 所遭遇的瓶颈。</p>
+<p>使用 SPDY 后，HTTP 协议额外获得以下功能。</p>
+<ul>
+<li>多路复用流：通过单一的 TCP 连接，可以无限制处理多个 HTTP 请求。</li>
+<li>赋予请求优先级：可以给请求逐个分配优先级顺序。这样主要是为了在发送多个请求时，解决因带宽低而导致响应变慢的问题。</li>
+<li>压缩 HTTP 首部</li>
+<li>推送功能：支持服务器主动向客户端推送数据的功能。</li>
+<li>服务器提示功能：服务器可以主动提示客户端请求所需的资源。</li>
+</ul>
+<p><strong>使用浏览器进行全双工通信的 WebSocket</strong></p>
+<p>利用 Ajax 和 Comet 技术进行通信可以提升 Web 的浏览速度。但问题在于通信若使用 HTTP 协议，就无法彻底解决瓶颈问题。WebSocket 网络技术正是为解决这些问题而实现的一套新协议及 API。</p>
+<p><strong>WebSocket 协议</strong></p>
+<p>主要特点：</p>
+<ul>
+<li>推送功能：支持由服务器向客户端推送数据的推送功能。</li>
+<li>减少通信量：只要建立起 WebSocket 连接，就希望一直保持连接状态。</li>
+</ul>
+<p><strong>期盼已久的 HTTP&#x2F;2.0</strong></p>
+<p>特点：</p>
+<p><img src="/../../assets/images/http/image23.png" alt="alt text"></p>
+<p><strong>Web 服务器管理文件的 WebDAV</strong></p>
+<p>WebDAV（基于万维网的分布式创作和版本控制）是一个可对 Web 服务器上的内容直接进行文件复制、编辑等操作的分布式文件系统。</p>
+<h2 id="第十章、构建-Web-内容的技术"><a href="#第十章、构建-Web-内容的技术" class="headerlink" title="第十章、构建 Web 内容的技术"></a>第十章、构建 Web 内容的技术</h2><ul>
+<li>HTML</li>
+<li>CSS</li>
+<li>JavaScript</li>
+<li>动态 HTML</li>
+<li>CGI</li>
+<li>Servlet</li>
+<li>XML</li>
+<li>RSS&#x2F;Atom</li>
+<li>JSON</li>
+</ul>
+<h2 id="第十一章、Web-的攻击技术"><a href="#第十一章、Web-的攻击技术" class="headerlink" title="第十一章、Web 的攻击技术"></a>第十一章、Web 的攻击技术</h2><p>对 Web 应用的攻击模式有以下两种：</p>
+<ul>
+<li>主动攻击：是指攻击者通过直接访问 Web 应用，把攻击代码传入的攻击模式</li>
+<li>被动攻击：指利用圈套策略执行攻击代码的攻击模式</li>
+</ul>
+<p><strong>因输出值转义不完全引发的安全漏洞：</strong></p>
+<ul>
+<li><p>XSS 注入</p>
+</li>
+<li><p>SQL 注入</p>
+</li>
+<li><p>OS 命令注入</p>
+</li>
+<li><p>HTTP 首部注入攻击</p>
+</li>
+<li><p>邮件首部注入攻击</p>
+</li>
+<li><p>目录遍历攻击</p>
+</li>
+<li><p>远程文件包含漏洞</p>
+<p><strong>因设置或设计上的缺陷引发的安全漏洞：</strong></p>
+</li>
+<li><p>强制浏览</p>
+</li>
+<li><p>不正确的错误信息处理</p>
+</li>
+<li><p>开放重定向</p>
+</li>
+</ul>
+<p><strong>因会话管理疏忽引发的安全漏洞：</strong></p>
+<ul>
+<li>会话劫持</li>
+<li>会话固定攻击</li>
+<li>跨站点请求伪造</li>
+</ul>
+<p><strong>其他安全漏洞：</strong></p>
+<ul>
+<li>密码破解</li>
+<li>点击劫持</li>
+<li>DoS 攻击</li>
+<li>后门程序</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">https://zhaoqianguo.github.io/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/HTTP/">HTTP</a><a class="post-meta__tags" href="/tags/%E7%BD%91%E7%BB%9C/">网络</a></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/06/09/ES6/ES6_14_async%20%E5%87%BD%E6%95%B0/" title="ES6 学习笔记（14） - async 函数"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ES6 学习笔记（14） - async 函数</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0%E3%80%81%E4%BA%86%E8%A7%A3-WEB-%E5%8F%8A%E7%BD%91%E7%BB%9C%E5%9F%BA%E7%A1%80"><span class="toc-number">1.1.</span> <span class="toc-text">第一章、了解 WEB 及网络基础</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0%E3%80%81%E7%AE%80%E5%8D%95%E7%9A%84-HTTP-%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.</span> <span class="toc-text">第二章、简单的 HTTP 协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0%E3%80%81HTTP-%E6%8A%A5%E6%96%87%E5%86%85%E7%9A%84-HTTP-%E4%BF%A1%E6%81%AF"><span class="toc-number">1.3.</span> <span class="toc-text">第三章、HTTP 报文内的 HTTP 信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0%E3%80%81%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%9C%E7%9A%84%E7%8A%B6%E6%80%81%E7%A0%81"><span class="toc-number">1.4.</span> <span class="toc-text">第四章、返回结果的状态码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0%E3%80%81%E4%B8%8E-HTTP-%E5%8D%8F%E4%BD%9C%E7%9A%84-Web-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">1.5.</span> <span class="toc-text">第五章、与 HTTP 协作的 Web 服务器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E7%AB%A0%E3%80%81HTTP-%E9%A6%96%E9%83%A8"><span class="toc-number">1.6.</span> <span class="toc-text">第六章、HTTP 首部</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%83%E7%AB%A0%E3%80%81HTTP-%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-number">1.7.</span> <span class="toc-text">第七章、HTTP 的缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AB%E7%AB%A0%E3%80%81%E7%A1%AE%E8%AE%A4%E8%AE%BF%E9%97%AE%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD%E7%9A%84%E8%AE%A4%E8%AF%81"><span class="toc-number">1.8.</span> <span class="toc-text">第八章、确认访问用户身份的认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B9%9D%E7%AB%A0%E3%80%81%E5%9F%BA%E4%BA%8E-HTTP-%E7%9A%84%E5%8A%9F%E8%83%BD%E8%BF%BD%E5%8A%A0%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.9.</span> <span class="toc-text">第九章、基于 HTTP 的功能追加协议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%8D%81%E7%AB%A0%E3%80%81%E6%9E%84%E5%BB%BA-Web-%E5%86%85%E5%AE%B9%E7%9A%84%E6%8A%80%E6%9C%AF"><span class="toc-number">1.10.</span> <span class="toc-text">第十章、构建 Web 内容的技术</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%8D%81%E4%B8%80%E7%AB%A0%E3%80%81Web-%E7%9A%84%E6%94%BB%E5%87%BB%E6%8A%80%E6%9C%AF"><span class="toc-number">1.11.</span> <span class="toc-text">第十一章、Web 的攻击技术</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《图解 HTTP》 学习笔记"/></a><div class="content"><a class="title" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记">《图解 HTTP》 学习笔记</a><time datetime="2022-08-24T04:41:23.000Z" title="发表于 2022-08-24 12:41:23">2022-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/09/ES6/ES6_14_async%20%E5%87%BD%E6%95%B0/" title="ES6 学习笔记（14） - async 函数"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（14） - async 函数"/></a><div class="content"><a class="title" href="/2022/06/09/ES6/ES6_14_async%20%E5%87%BD%E6%95%B0/" title="ES6 学习笔记（14） - async 函数">ES6 学习笔记（14） - async 函数</a><time datetime="2022-06-09T12:35:54.000Z" title="发表于 2022-06-09 20:35:54">2022-06-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/09/ES6/ES6_13_Generator%20%E5%87%BD%E6%95%B0%E7%9A%84%E5%BC%82%E6%AD%A5%E5%BA%94%E7%94%A8%20copy/" title="ES6 学习笔记（13） - Generator 函数的异步应用"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（13） - Generator 函数的异步应用"/></a><div class="content"><a class="title" href="/2022/06/09/ES6/ES6_13_Generator%20%E5%87%BD%E6%95%B0%E7%9A%84%E5%BC%82%E6%AD%A5%E5%BA%94%E7%94%A8%20copy/" title="ES6 学习笔记（13） - Generator 函数的异步应用">ES6 学习笔记（13） - Generator 函数的异步应用</a><time datetime="2022-06-09T12:35:53.000Z" title="发表于 2022-06-09 20:35:53">2022-06-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/09/ES6/ES6_12_Generator%20%E5%87%BD%E6%95%B0%20copy/" title="ES6 学习笔记（12） - Generator 函数"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（12） - Generator 函数"/></a><div class="content"><a class="title" href="/2022/06/09/ES6/ES6_12_Generator%20%E5%87%BD%E6%95%B0%20copy/" title="ES6 学习笔记（12） - Generator 函数">ES6 学习笔记（12） - Generator 函数</a><time datetime="2022-06-09T12:35:07.000Z" title="发表于 2022-06-09 20:35:07">2022-06-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/08/ES6/ES6_11_Iterator%20&amp;%20for%20%E2%80%A6%20of/" title="ES6 学习笔记（11） - Iterator &amp; for … of"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（11） - Iterator &amp; for … of"/></a><div class="content"><a class="title" href="/2022/06/08/ES6/ES6_11_Iterator%20&amp;%20for%20%E2%80%A6%20of/" title="ES6 学习笔记（11） - Iterator &amp; for … of">ES6 学习笔记（11） - Iterator &amp; for … of</a><time datetime="2022-06-08T13:05:36.000Z" title="发表于 2022-06-08 21:05:36">2022-06-08</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2025 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
