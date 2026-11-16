@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Fiber 把一次渲染拆成了什么 | 大西瓜的博客</title><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从一次点击到两棵树，把调用栈换成三个指针和一个变量，讲清楚渲染为什么能中途停下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fiber 把一次渲染拆成了什么">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="从一次点击到两棵树，把调用栈换成三个指针和一个变量，讲清楚渲染为什么能中途停下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png">
+<meta property="article:published_time" content="2026-11-16T01:27:00.000Z">
+<meta property="article:modified_time" content="2026-11-16T01:37:36.882Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="Fiber">
+<meta property="article:tag" content="源码走读">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Fiber 把一次渲染拆成了什么',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-16 09:37:36'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png')"><nav id="nav"><span id="blog-info"><a href="/" title="大西瓜的博客"><span class="site-name">大西瓜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Fiber 把一次渲染拆成了什么</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-11-16T01:27:00.000Z" title="发表于 2026-11-16 09:27:00">2026-11-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9A%8F%E7%AC%94/">随笔</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Fiber 把一次渲染拆成了什么"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>继上一篇《状态没有名字，React 却一次都没认错》后，我又往下翻了一层。那篇讲 Hook 链表挂在 fiber 的 <code>memoizedState</code> 上，fiber 当时只是个背景板，一句「每个组件对应一个 fiber」就带过去了。可要说清一次渲染凭什么能被拆开，躲不掉它。</p>
+<p>我一直把 Fiber 当成虚拟 DOM 换了个名字，直到被问到「拆成什么」，才发现自己说不上来。</p>
+<p>先从一个只有按钮和数字的小组件说起，把一次点击之后 React 要干的活摊开，再回头看 fiber 长什么样。</p>
+<h2 id="一次点击，React-要干多少活"><a href="#一次点击，React-要干多少活" class="headerlink" title="一次点击，React 要干多少活"></a>一次点击，React 要干多少活</h2><p>摆一个最小得不能再小的应用：一个按钮，一个显示数字的 <code>span</code>，点一下按钮，数字加一。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ClickCounter</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  state = &#123; <span class="attr">count</span>: <span class="number">0</span> &#125;;</span><br><span class="line">  handleClick = <span class="function">() =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123; <span class="attr">count</span>: <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">count</span> + <span class="number">1</span> &#125;);</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> [</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleClick&#125;</span>&gt;</span>Update counter<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>,</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;this.state.count&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span>,</span><br><span class="line">    ];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>点下去之后，React 手上排着这么一串活：把 <code>ClickCounter</code> 的 state 里的 <code>count</code> 改掉，重新取回 <code>render</code> 返回的两个子元素，跟上一轮那两个比一比 props 有没有变，把 <code>span</code> 的 props 更新成新的数字，顺带还要处理生命周期方法、更新 ref。这些活动在 Fiber 里被统一叫做 work，活的种类跟着元素类型走：类组件得先 new 出一个实例，函数组件不用，原生标签对应的是 DOM 的增删改，portal 又是另一套。JSX 编译完得到的不是 HTML，是一批带 <code>$$typeof</code>、<code>type</code>、<code>key</code>、<code>props</code> 的普通对象，文本内容是挂在 <code>span</code> 和 <code>button</code> 的 children 上，点击回调是 <code>button</code> 的 props 里的一项。</p>
+<p>这串活分两拨人干：reconciler 负责算出新旧两棵树差在哪，renderer 负责把差的那部分真的落到目标上。浏览器里目标是 DOM，React Native 里是原生视图，两边共用一个 reconciler，各写各的 renderer。早年那句「虚拟 DOM」说的就是前半段，现在官方不太用这个词了，因为容易跟内部那棵可变树混起来。分成两阶段还有个更实际的用处，讲到可中断时会回来。</p>
+<h2 id="主线程只有那么点时间"><a href="#主线程只有那么点时间" class="headerlink" title="主线程只有那么点时间"></a>主线程只有那么点时间</h2><p>一帧按 60Hz 的屏算，是 16.7 毫秒左右。这十几毫秒里浏览器还要做样式计算、布局、绘制、合成，还要响应输入，留给应用代码的更少。React 15 及以前的 reconciler 用递归对比新旧虚拟 DOM 树，一旦开始就一口气把整棵树比完才把主线程还回去。应用规模不受限制，组件层级一深，这趟递归就占住主线程不放，浏览器想画下一帧画不了，动画掉帧，点按钮也没反应，页面发涩。</p>
+<p>那个年代的调用栈长这样：从 <code>renderRoot</code> 压一帧，往下一层组件再压一帧，一直压到最深的叶子，再一层层弹回来。栈帧里装着这一层的局部变量和「跑完该回哪儿」，可这副栈归运行时管，React 碰不到，没法在中间说「停在这儿，下一帧接着」，更没法把某一帧抽出来丢掉。所以老实现被叫作 Stack Reconciler，名字里的 Stack 就是指它拿调用栈记当前处理到哪个单元。</p>
+<p>优化其实做了不少。协调算法复杂度是 O(n)，列表用 <code>key</code> 认人，只更新需要更新的节点，更新还做批量。可这几样减的是活的总量，减不掉「一口气占着主线程」这件事：哪怕只剩一半节点，还是得从头走到尾才能停。</p>
+<p>问题不在算得多，在没地方停。</p>
+<p>React 16 换了个做法：比较几个节点之后就问一次浏览器有没有更高优先级的事要办，有就主动让出主线程，等空闲了再接着比下几个，如此循环。记录当前处理单元的那个数据结构叫 fiber，新算法也就叫 Fiber Reconciler，和老的 Stack Reconciler 正好对上。这种把渲染工作摊到多帧的能力，后来叫时间分片。</p>
+<p>浏览器其实给过一个现成的口子。<code>requestIdleCallback</code> 可以把一个函数排到空闲时段执行，回调里的 <code>deadline.timeRemaining()</code> 会告诉你这一帧还剩多少毫秒可用，<code>didTimeout</code> 为 <code>false</code> 就说明这段时间还没被用完，而且这个剩余值随时会变，浏览器一插进来别的活就得重新问。把这段回调贴进控制台跑，常见输出是 <code>49.9 false</code>，意思是还有 49.9 毫秒、没超时。可惜它触发得不够勤，等不到足够多的空闲帧，React 团队后来自己写了一套 scheduler 来排这些活。</p>
+<p>有了空闲时间也只是解决了「什么时候做」，还缺「做多少」：得先把一整趟活切成能一份一份领走的单元，才能按剩余时间领几份、把剩下的留到下一帧。</p>
+<h2 id="把栈帧从运行时手里拿回来"><a href="#把栈帧从运行时手里拿回来" class="headerlink" title="把栈帧从运行时手里拿回来"></a>把栈帧从运行时手里拿回来</h2><p>讲 Fiber 架构的那份笔记里，把要补的能力列得很直白：暂停一份工作、待会儿再回来；给不同种类的活排优先级；复用之前算完的部分；一旦这份活被更新的数据顶掉了，直接中止。要做到这些，得先把活拆成单元，一个 fiber 就是一个工作单元。</p>
+<p>那句定义说得干脆：Fiber 是对栈的一次重新实现，专门给 React 组件用的，一个 fiber 可以当成一个虚拟栈帧。</p>
+<p>这话不是打比方。函数一调用就压一个栈帧，栈帧代表这个函数正在做的事，函数返回才能弹出来，整副栈归运行时管。把栈帧换成内存里一个普通对象，什么时候执行它、要不要复用、算到一半能不能扔，就都由 React 说了算。栈帧能留在内存里，也就能想什么时候执行、按什么顺序执行，这正是调度需要的前提。为了这件事，React 走的是 pull 的路子：数据来了不立刻算，等要用的时候再算，屏幕外的东西可以拖着，数据来得比帧率快可以合并，用户点击造成的动画更新可以压过刚从网络拿回来的内容。push 那一套得由写业务的人决定什么时候算，pull 则由框架自己判断哪些计算此刻是相关的。</p>
+<p>要拆成单元，还得有个能停下来再找回来的遍历方式。递归不行，于是 React 换成了链表。</p>
+<h2 id="三个指针撑起一棵树"><a href="#三个指针撑起一棵树" class="headerlink" title="三个指针撑起一棵树"></a>三个指针撑起一棵树</h2><p>先说 fiber 节点的三层身份。作为架构，它取代了老协调器里的递归栈，这一层的变化就是 Stack Reconciler 变 Fiber Reconciler。作为静态数据结构，它对应一个 React element，<code>tag</code> 记着这是函数组件、类组件还是原生标签，<code>type</code> 是组件函数本身或者 DOM 标签名，<code>key</code> 用来在列表里认人，<code>stateNode</code> 指向真实的 DOM 节点或者类组件实例。作为动态工作单元，它记着这次更新带来的状态变化和要执行的操作：<code>pendingProps</code> 是刚传进来还没用的输入，<code>memoizedProps</code> 是上一轮算完记下的输入，<code>memoizedState</code> 是产出当前界面用的状态，<code>updateQueue</code> 排着状态更新、回调和 DOM 更新，<code>flags</code> 记这次要做的增删改，<code>lanes</code> 和 <code>childLanes</code> 管优先级。</p>
+<p>顺带说一个容易看岔的地方：2018 年前后的源码里，记操作的字段叫 <code>effectTag</code>，优先级用的是 <code>expirationTime</code>；2020 年 5 月优先级模型换成 lane，字段也改叫 <code>flags</code>。贴着老字段的 FiberNode 定义和现在的对不上，是版本不同，不是另一套机制。</p>
+<p>真正把节点连成树的只有三个指针：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FiberNode 里管树形关系的字段</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">return</span> = <span class="literal">null</span>;   <span class="comment">// 处理完要回到的节点</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">child</span> = <span class="literal">null</span>;    <span class="comment">// 第一个子节点</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">sibling</span> = <span class="literal">null</span>;  <span class="comment">// 右边第一个兄弟</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">index</span> = <span class="number">0</span>;</span><br><span class="line"><span class="variable language_">this</span>.<span class="property">alternate</span> = <span class="literal">null</span>; <span class="comment">// 另一次更新里对应的那个 fiber</span></span><br></pre></td></tr></table></figure>
+
+<p><code>child</code> 指向组件 render 返回的那一个节点，<code>sibling</code> 把同一层剩下的孩子串成单向链表，<code>return</code> 指向处理完当前节点后该回去的地方。三个字段合起来，就把「往子树里钻一层」和「同一层挨个处理」两件事都表达出来了：每个节点只记自己往下的第一步和往右的一步，不必知道整棵树长什么样。</p>
+<p><code>return</code> 这个名字值得停一下。它没叫 <code>parent</code>，因为作为一个工作单元，重点是干完活往哪儿回，对应的是栈帧里的返回地址，不是家谱里的父亲。子节点和它的兄弟都收工了，才顺着它回到上层。这也正是为什么一个组件返回多个子元素时，它们会串成一条单向链表，表头挂在父节点的 <code>child</code> 上，每个孩子的 <code>return</code> 都指回同一个父亲。</p>
+<p>拿一个具体例子画一遍。有个 <code>List</code> 组件，里面一个 button 和三个 <code>Item</code>，点一下按钮把每个 <code>Item</code> 里的数字平方。对应的 fiber 树从 <code>HostRoot</code> 起步，它是 React 内部建的特殊节点，充当最外层组件的父亲，<code>return</code> 是 <code>null</code>；往下 <code>child</code> 指到 <code>List</code>，<code>List</code> 的 <code>child</code> 指到 button，button 的 <code>sibling</code> 指到第一个 <code>Item</code>，三个 <code>Item</code> 依次用 <code>sibling</code> 串成一串，每个节点的 <code>return</code> 都指回自己上一层。用文字画出来大概是这个形状：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HostRoot</span><br><span class="line">  └─ child → List</span><br><span class="line">        └─ child → button</span><br><span class="line">              └─ sibling → Item(0)</span><br><span class="line">                    └─ sibling → Item(1)</span><br><span class="line">                          └─ sibling → Item(2)</span><br></pre></td></tr></table></figure>
+
+<p>直线往下的是 <code>child</code>，横着串的是 <code>sibling</code>，往回的箭头是 <code>return</code>，图上没画出来，但每个节点都带着。从 <code>HostRoot</code> 出发，反复查当前节点的 <code>child</code>、<code>sibling</code>、<code>return</code>，构建或者更新对应的 fiber 节点，回到 <code>HostRoot</code> 时整棵树就走完了。这仍然是深度优先，只是走法从「函数调用自己」换成了「顺着指针挪」。</p>
+<p>Stack Reconciler 用栈天然能找到子节点和父节点，Fiber 靠这三个指针达到同样的目的，还多拿到一样东西：走到哪儿，是可以记下来的。</p>
+<h2 id="走进去，走出来"><a href="#走进去，走出来" class="headerlink" title="走进去，走出来"></a>走进去，走出来</h2><p>遍历这件事由四个函数分担：<code>performUnitOfWork</code>、<code>beginWork</code>、<code>completeUnitOfWork</code>、<code>completeWork</code>。前两个负责「走进」一个组件，后两个负责「走出」它；真正干活的其实是 <code>beginWork</code> 和 <code>completeWork</code>，另外两个主要管迭代。这个说法很形象，begin 是 stepping into，complete 是 stepping out。</p>
+<p>把开头那个 <code>ClickCounter</code> 摆进来。协调总是从最顶上的 <code>HostRoot</code> 开始，不过 React 会跳过已经处理过的节点，一路快进到还有活没干完的那个；比如在组件树很深的地方调了一次 <code>setState</code>，React 也是从顶上起，很快略过那些父节点，直奔调 <code>setState</code> 的组件。</p>
+<p>简化的循环长这样：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">workLoop</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">while</span> (nextUnitOfWork !== <span class="literal">null</span>) &#123;</span><br><span class="line">    nextUnitOfWork = <span class="title function_">performUnitOfWork</span>(nextUnitOfWork);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">performUnitOfWork</span>(<span class="params">fiber</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> nextChild = <span class="title function_">beginWork</span>(fiber);   <span class="comment">// 返回下一个要处理的子节点，或 null</span></span><br><span class="line">  <span class="keyword">if</span> (nextChild !== <span class="literal">null</span>) <span class="keyword">return</span> nextChild;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">completeUnitOfWork</span>(fiber);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">completeUnitOfWork</span>(<span class="params">fiber</span>) &#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> returnFiber = fiber.<span class="property">return</span>;</span><br><span class="line">    <span class="keyword">const</span> siblingFiber = fiber.<span class="property">sibling</span>;</span><br><span class="line">    <span class="title function_">completeWork</span>(fiber);</span><br><span class="line">    <span class="keyword">if</span> (siblingFiber !== <span class="literal">null</span>) <span class="keyword">return</span> siblingFiber;</span><br><span class="line">    <span class="keyword">if</span> (returnFiber === <span class="literal">null</span>) <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    fiber = returnFiber;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>nextUnitOfWork</code> 存的是 workInProgress 树上那个还有活要干的节点，React 靠它判断还有没有别处没做完；当前 fiber 处理完，这个变量要么指向下一个节点，要么变成 <code>null</code>，变成 <code>null</code> 就退出循环，准备 commit。<code>beginWork</code> 总是返回下一个要处理的 child 或者 <code>null</code>：有 child 就把它交给 <code>nextUnitOfWork</code>，没有 child 说明这条分支到底了，可以完成当前节点。</p>
+<p>完成也不是收一个就完。<code>completeUnitOfWork</code> 主体是一个大 while：完成当前 fiber 之后先看有没有兄弟，有就退出函数把兄弟交回去，让循环从这条新分支开始；没有兄弟就沿着 <code>return</code> 上移一层继续完成。有个细节容易记错：走到兄弟的时候，父节点还没完成，只有所有从子节点出发的分支都收了口，才轮到父节点完成并继续往上退。也正因为这样，React 应用副作用是从孩子往父亲走。</p>
+<p>我把开头那棵小树按三个指针连起来，在 Node v22.22.2 上跑了一遍这个循环，屏幕上打出来的是两行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">begin   : App -&gt; div -&gt; i am -&gt; span -&gt; KaSong</span><br><span class="line">complete: i am -&gt; KaSong -&gt; span -&gt; div -&gt; App</span><br></pre></td></tr></table></figure>
+
+<p>往下的顺序和递归版一模一样，往上收口却是叶子先来。文本 <code>i am</code> 没有子节点，立刻 <code>completeWork</code>；轮到 <code>span</code>，它得先等自己的 <code>KaSong</code> 收完口，所以 <code>KaSong</code> 排在 <code>span</code> 前面；<code>div</code> 又要等两个孩子都完事。我又让循环每处理两个单元就强制让出一次，让出的位置分别落在 <code>i am</code> 和 <code>KaSong</code> 上，回来接着走，两行顺序一点没乱。递归版做不到这件事，它的进度在栈里，取不出来。</p>
+<p><code>beginWork</code> 与 <code>completeWork</code> 里真正做了什么，可以按节点类型想：类组件要调生命周期、跑 <code>render</code> 拿子元素；原生标签要在 <code>completeWork</code> 里把 DOM 节点准备好、把 props 的差别记下来。四个函数名看着绕，其实只干了两件事，一层层进去，再一层层出来。</p>
+<h2 id="两棵树，一张草稿"><a href="#两棵树，一张草稿" class="headerlink" title="两棵树，一张草稿"></a>两棵树，一张草稿</h2><p>到这里还差一块：既然能停下来，停下来的那份半成品放哪儿。</p>
+<p>讲双缓存有个比方特别直观。用 canvas 画动画，每帧绘制前都要 <code>ctx.clearRect</code> 清掉上一帧；要是当前帧算得久，清屏到画完之间有一大段空隙，屏幕上就是白屏。解法是先在内存里把这一帧画好，画完直接整帧替换，省掉两帧之间的计算时间，也就不会闪。这种「在内存中构建并直接替换」叫双缓存，React 拿它来构建和替换 Fiber 树，对应的正是 DOM 树的创建与更新。</p>
+<p>React 里同时最多有两棵 Fiber 树：屏幕上当前显示的那棵叫 <code>current</code>，正在内存里构建的那棵叫 <code>workInProgress</code>。两棵树上对应的节点用 <code>alternate</code> 互相指着：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">currentFiber.<span class="property">alternate</span> === workInProgressFiber;</span><br><span class="line">workInProgressFiber.<span class="property">alternate</span> === currentFiber;</span><br></pre></td></tr></table></figure>
+
+<p>所有工作都做在 <code>workInProgress</code> 的节点上。render 阶段一边走过 <code>current</code> 树，一边用 <code>render</code> 返回的新数据造出对应的另一半，攒成一棵等着刷上屏的树。这棵树上改了什么、打了什么标记，用户一点都看不见，有人管它叫 draft，草稿；正因为有草稿，React 才能先把所有组件都算完，再一次性把变更刷到屏幕上。React 有条核心原则是一致性，DOM 永远一口气更新，不给用户看半截结果。</p>
+<p>换树靠的是应用根节点上的一个指针。<code>ReactDOM.render</code> 首次执行会建出 <code>fiberRootNode</code> 和 <code>rootFiber</code>：前者是整个应用的根，只有一个，后者是这次组件树的根，一个应用里可以多次 render 不同的树，于是会有多个 <code>rootFiber</code>。<code>fiberRootNode.current</code> 指着当前页面上内容对应的那棵树。首屏时页面还没挂任何 DOM，<code>current</code> 指着的 <code>rootFiber</code> 一个子节点都没有，整棵 current 树是空的；render 阶段按 JSX 在内存里逐个造出 Fiber 节点连成 <code>workInProgress</code> 树，commit 阶段渲染上屏，随后 <code>fiberRootNode.current</code> 拨过去，草稿就成了正本。</p>
+<p>更新时同样走一遍。点一下那个 <code>&lt;p&gt;</code> 让 <code>num</code> 加一，就开一次新的 render 阶段，再建一棵 <code>workInProgress</code> 树；这回能从 <code>current</code> 树复用不少旧节点的属性，判断哪些能复用、哪些得重建，就是 Diff 算法。树建完进 commit，渲染完，<code>workInProgress</code> 变成新的 <code>current</code>。两张纸一直都在，只是身份对调，省下分配内存和垃圾回收的开销。</p>
+<p>这也解释了为什么「暂停」常常不是等会儿接着算，而是整个丢掉重来：更高优先级的更新插进来时，正在算的那棵 <code>workInProgress</code> 可以不要了，从没被动过的 <code>current</code> 重新克隆一份开算，<code>pendingProps</code> 和 <code>memoizedProps</code> 一样的部分还能直接复用。屏幕上从头到尾都是完整的一帧。</p>
+<h2 id="一张只记改动的小清单"><a href="#一张只记改动的小清单" class="headerlink" title="一张只记改动的小清单"></a>一张只记改动的小清单</h2><p>render 阶段算完，交出去的不是整棵树，是一条只串着「有事的节点」的线性表。</p>
+<p>改 DOM、调生命周期、动 ref，这些都不算「用 state 和 props 算出界面」，在 React 里被叫做副作用。每个 fiber 节点都可以挂着副作用，编码在 <code>flags</code> 里，旧版叫 <code>effectTag</code>：原生标签的活是增删改元素，类组件可能要更新 ref、调 <code>componentDidMount</code> 和 <code>componentDidUpdate</code>。要快速找到它们，React 另建一条线性链表把这些节点串起来，用 <code>nextEffect</code> 相连、<code>firstEffect</code> 指到表头，遍历一条线比遍历一棵树快，也不用在没有副作用的节点上浪费时间。</p>
+<p>有个很妙的比方：把它想成一棵圣诞树，用一串彩灯把所有带效果的节点连起来，灯串就是那条链表。举个例子，某次更新让 <code>c2</code> 被插进 DOM、<code>d2</code> 和 <code>c1</code> 改了属性、<code>b2</code> 要触发一个生命周期方法，链表就把这四个串起来，其余节点全跳过。应用这些效果是从孩子往父亲走，跟前面 <code>completeWork</code> 收口的顺序对得上。</p>
+<p>新版源码里这条链的做法变了，<code>firstEffect</code>、<code>nextEffect</code>、<code>lastEffect</code> 已经不在 <code>FiberNode</code> 上，改成 <code>subtreeFlags</code> 一路往上冒泡，让父节点知道子树里有没有活。目的没变：先算清要改哪些，再找一条最短的路把它们执行掉。</p>
+<h2 id="能断的只有前半段"><a href="#能断的只有前半段" class="headerlink" title="能断的只有前半段"></a>能断的只有前半段</h2><p>把两阶段摆回来看，可中断的是 render，不是 commit。</p>
+<p>render 阶段只算不动：读 props、跑组件、比对新旧子元素、把要删要插要改的记成标记，全程在内存里，页面上什么都没发生。所以算到一半来了更高优先级的更新，这段工作可以直接丢掉，用户看不见；等主线程空下来，从 <code>current</code> 重新克隆一份接着算就行。也正因为随时能作废，React 才敢把整棵树拆成一个个单元慢慢领，还敢给不同的更新排优先级，动画更新压过刚从网络拿回来的内容。</p>
+<p>这件事还有个连带后果。16.3 起，一批在 render 阶段跑的老生命周期方法被标上 <code>UNSAFE_</code>：<code>componentWillMount</code>、<code>componentWillReceiveProps</code>、<code>componentWillUpdate</code>。render 阶段可能被打断、重来、丢弃，往这些钩子里塞副作用就会执行得不受控；17.0 里不带前缀的版本被去掉了。留在 commit 阶段的 <code>getSnapshotBeforeUpdate</code>、<code>componentDidMount</code>、<code>componentDidUpdate</code>、<code>componentWillUnmount</code> 没有这个顾虑，那一段是同步的，可以放心碰 DOM。</p>
+<p>commit 阶段不一样。这一步真的在动 DOM，做一半停下来，用户看到的就是半个界面，所以它没有 <code>shouldYield()</code>，进了就得一口气走到底。而且它自己还分两遍：第一遍把 DOM 的插入、更新、删除和 ref 卸载全做完，然后把 <code>finishedWork</code> 树指派给 <code>FiberRoot</code>，让 <code>workInProgress</code> 变成 <code>current</code>；第二遍才调剩下的生命周期和 ref 回调。换指针的时机卡在两遍之间，是为了让 <code>componentWillUnmount</code> 里看到的还是旧树，而 <code>componentDidMount</code>、<code>componentDidUpdate</code> 里看到的已经是新树。分两遍还保证整棵树的增删改都落实了，才去跑那些回调。</p>
+<p>调度那一侧的门槛也写死在源码里。同步的循环是 <code>while (workInProgress !== null)</code>，一路做到底，点击、输入这类交互更新走它；并发的循环每做完一个单元问一次 <code>shouldYield()</code>，调度器说让就退出，退出时不用保存现场，<code>workInProgress</code> 还指着下一个节点，下一帧接着跑。另有一条按时间片收口的写法 <code>yieldAfter = now() + (nonIdle ? 25 : 5)</code>：非 idle 的更新攒够 25 毫秒让一次，idle 的 5 毫秒就让。注释里特意说明，这么做的目的不是省掉让出那点开销，而是故意把动画压到 30 帧，别让一大段渲染把主线程上的动画饿死。这种数字光看架构图是猜不出来的。</p>
+<p>把一次更新切成两段，代价是内存里多养一棵树、每轮更新要维护 <code>current</code> 与 <code>workInProgress</code> 的对应关系，换来的是前半段可以随便打断、重排、丢弃，后半段短到不值得拆。我觉得这个取舍比「异步可中断」四个字实在得多，它讲清楚了代价落在哪一侧。</p>
+<p>树收口到根之后，攒下的清单交给 commit，根指针从 <code>current</code> 换到 <code>workInProgress</code>，两棵树调换身份，下一轮更新又从 <code>alternate</code> 开始复用。上次看 <code>completeUnitOfWork</code> 里那句 <code>completedWork = returnFiber</code> 我还觉得普通，现在再看，它就是在手动弹栈。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>本文编译自下列几篇长文，括号内是各自借用的部分。</p>
+<ul>
+<li>Max Koretskyi, <a target="_blank" rel="noopener" href="https://readmedium.com/inside-fiber-in-depth-overview-of-the-new-reconciliation-algorithm-in-react-e1c04700ef6e">Inside Fiber: in-depth overview of the new reconciliation algorithm in React</a>（编译自：work 的定义与 ClickCounter 例子、四个遍历函数、effect list 与圣诞树彩灯、render 异步与 commit 同步、UNSAFE 生命周期、commit 两遍；文中圣诞树彩灯的比方出自 Dan Abramov）</li>
+<li>Max Koretskyi, <a target="_blank" rel="noopener" href="https://readmedium.com/the-how-and-why-on-reacts-usage-of-linked-list-in-fiber-67f1014d0eb7">The how and why on React’s usage of linked list in Fiber to walk the component’s tree</a>（编译自：两阶段、work loop 与虚拟栈帧的展开顺序、<code>shouldYield</code> 与 scheduler）</li>
+<li>卡颂《React 技术揭秘》<a target="_blank" rel="noopener" href="https://react.iamkasong.com/process/fiber.html">Fiber 架构的实现原理</a> 与 <a target="_blank" rel="noopener" href="https://react.iamkasong.com/process/doubleBuffer.html">双缓存 Fiber 树</a>（三层含义、三个指针与 <code>return</code> 的命名、canvas 白屏与双缓存、mount &#x2F; update 换树流程）</li>
+<li>Andrew Clark, <a target="_blank" rel="noopener" href="https://github.com/acdlite/react-fiber-architecture">React Fiber Architecture</a>（编译自：虚拟栈帧、<code>alternate</code>、pull 与 push、工作单元的定义）</li>
+<li>Lin Clark《A Cartoon Intro to Fiber》(ReactConf 2017) 中文整理 <a target="_blank" rel="noopener" href="https://github.com/jiangchenguang/blog/issues/23">《Fiber 入门》</a>（Stack &#x2F; Fiber Reconciler 的命名、List 与三个 Item 的例子、四个指针属性、深度优先）</li>
+<li><code>facebook/react</code> main 分支 <a target="_blank" rel="noopener" href="https://github.com/facebook/react/tree/main/packages/react-reconciler/src">ReactFiber.js &#x2F; ReactFiberWorkLoop.js</a>（字段定义、三种工作循环与时间片）</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/">https://zhaoqianguo.github.io/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/React/">React</a><a class="post-meta__tags" href="/tags/Fiber/">Fiber</a><a class="post-meta__tags" href="/tags/%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB/">源码走读</a></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">状态没有名字，React 却一次都没认错</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-12</div><div class="title">状态没有名字，React 却一次都没认错</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1%E7%82%B9%E5%87%BB%EF%BC%8CReact-%E8%A6%81%E5%B9%B2%E5%A4%9A%E5%B0%91%E6%B4%BB"><span class="toc-number">1.</span> <span class="toc-text">一次点击，React 要干多少活</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B%E5%8F%AA%E6%9C%89%E9%82%A3%E4%B9%88%E7%82%B9%E6%97%B6%E9%97%B4"><span class="toc-number">2.</span> <span class="toc-text">主线程只有那么点时间</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%8A%E6%A0%88%E5%B8%A7%E4%BB%8E%E8%BF%90%E8%A1%8C%E6%97%B6%E6%89%8B%E9%87%8C%E6%8B%BF%E5%9B%9E%E6%9D%A5"><span class="toc-number">3.</span> <span class="toc-text">把栈帧从运行时手里拿回来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E4%B8%AA%E6%8C%87%E9%92%88%E6%92%91%E8%B5%B7%E4%B8%80%E6%A3%B5%E6%A0%91"><span class="toc-number">4.</span> <span class="toc-text">三个指针撑起一棵树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%B0%E8%BF%9B%E5%8E%BB%EF%BC%8C%E8%B5%B0%E5%87%BA%E6%9D%A5"><span class="toc-number">5.</span> <span class="toc-text">走进去，走出来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E6%A3%B5%E6%A0%91%EF%BC%8C%E4%B8%80%E5%BC%A0%E8%8D%89%E7%A8%BF"><span class="toc-number">6.</span> <span class="toc-text">两棵树，一张草稿</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E5%8F%AA%E8%AE%B0%E6%94%B9%E5%8A%A8%E7%9A%84%E5%B0%8F%E6%B8%85%E5%8D%95"><span class="toc-number">7.</span> <span class="toc-text">一张只记改动的小清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%BD%E6%96%AD%E7%9A%84%E5%8F%AA%E6%9C%89%E5%89%8D%E5%8D%8A%E6%AE%B5"><span class="toc-number">8.</span> <span class="toc-text">能断的只有前半段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">9.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Fiber 把一次渲染拆成了什么"/></a><div class="content"><a class="title" href="/2026/11/16/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么">Fiber 把一次渲染拆成了什么</a><time datetime="2026-11-16T01:27:00.000Z" title="发表于 2026-11-16 09:27:00">2026-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="状态没有名字，React 却一次都没认错"/></a><div class="content"><a class="title" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错">状态没有名字，React 却一次都没认错</a><time datetime="2026-11-12T01:00:00.000Z" title="发表于 2026-11-12 09:00:00">2026-11-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-4.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《图解 HTTP》 学习笔记"/></a><div class="content"><a class="title" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记">《图解 HTTP》 学习笔记</a><time datetime="2022-08-24T04:41:23.000Z" title="发表于 2022-08-24 12:41:23">2022-08-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/09/ES6/ES6_14_async%20%E5%87%BD%E6%95%B0/" title="ES6 学习笔记（14） - async 函数"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（14） - async 函数"/></a><div class="content"><a class="title" href="/2022/06/09/ES6/ES6_14_async%20%E5%87%BD%E6%95%B0/" title="ES6 学习笔记（14） - async 函数">ES6 学习笔记（14） - async 函数</a><time datetime="2022-06-09T12:35:54.000Z" title="发表于 2022-06-09 20:35:54">2022-06-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/06/09/ES6/ES6_13_Generator%20%E5%87%BD%E6%95%B0%E7%9A%84%E5%BC%82%E6%AD%A5%E5%BA%94%E7%94%A8%20copy/" title="ES6 学习笔记（13） - Generator 函数的异步应用"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-4.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ES6 学习笔记（13） - Generator 函数的异步应用"/></a><div class="content"><a class="title" href="/2022/06/09/ES6/ES6_13_Generator%20%E5%87%BD%E6%95%B0%E7%9A%84%E5%BC%82%E6%AD%A5%E5%BA%94%E7%94%A8%20copy/" title="ES6 学习笔记（13） - Generator 函数的异步应用">ES6 学习笔记（13） - Generator 函数的异步应用</a><time datetime="2022-06-09T12:35:53.000Z" title="发表于 2022-06-09 20:35:53">2022-06-09</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
