@@ -1,0 +1,371 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ref 为什么要包一层 .value | 大西瓜的博客</title><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="从值类型和引用类型的差别讲起，一路看到 RefImpl 的 get 和 set，再到模板里那层自动解包。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ref 为什么要包一层 .value">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="从值类型和引用类型的差别讲起，一路看到 RefImpl 的 get 和 set，再到模板里那层自动解包。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png">
+<meta property="article:published_time" content="2026-11-19T01:34:00.000Z">
+<meta property="article:modified_time" content="2026-11-19T01:34:00.000Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="源码走读">
+<meta property="article:tag" content="Vue">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ref 为什么要包一层 .value',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-19 09:34:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png')"><nav id="nav"><span id="blog-info"><a href="/" title="大西瓜的博客"><span class="site-name">大西瓜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ref 为什么要包一层 .value</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-11-19T01:34:00.000Z" title="发表于 2026-11-19 09:34:00">2026-11-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9A%8F%E7%AC%94/">随笔</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ref 为什么要包一层 .value"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="先抛结论"><a href="#先抛结论" class="headerlink" title="先抛结论"></a>先抛结论</h2><p>Vue3 必须用 <code>.value</code>，是 JavaScript 这门语言本身的限制导致的，而非 Vue 故意设计复杂。<code>.value</code> 是为了让基础类型也能拥有响应式能力。</p>
+<p>日常开发里最常见的两种写法：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 基础类型用 ref，必须加 .value</span></span><br><span class="line"><span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">0</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(count.<span class="property">value</span>)  <span class="comment">// 0</span></span><br><span class="line">count.<span class="property">value</span>++</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对象、数组用 reactive，不用加 .value</span></span><br><span class="line"><span class="keyword">const</span> user = <span class="title function_">reactive</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;张三&#x27;</span>, <span class="attr">age</span>: <span class="number">18</span> &#125;)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(user.<span class="property">name</span>)    <span class="comment">// 张三</span></span><br><span class="line">user.<span class="property">age</span>++</span><br></pre></td></tr></table></figure>
+
+<p>为什么同样是响应式数据，用法天差地别。</p>
+<h2 id="两种数据类型"><a href="#两种数据类型" class="headerlink" title="两种数据类型"></a>两种数据类型</h2><p>要理解 <code>.value</code>，得先搞懂 JavaScript 最核心的一个知识点：值类型和引用类型。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>值类型（原始类型）</th>
+<th>引用类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型</td>
+<td>string &#x2F; number &#x2F; boolean &#x2F; null &#x2F; undefined &#x2F; Symbol &#x2F; BigInt</td>
+<td>object &#x2F; array &#x2F; function</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>栈内存，直接存值</td>
+<td>栈内存存地址，堆内存存数据</td>
+</tr>
+<tr>
+<td>传递</td>
+<td>值拷贝，赋值后互不影响</td>
+<td>地址拷贝，多个变量指向同一个数据</td>
+</tr>
+<tr>
+<td>关键特性</td>
+<td>无法被引用，没有「地址」概念</td>
+<td>可以被引用，改属性会影响所有指向它的变量</td>
+</tr>
+</tbody></table>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> b = a</span><br><span class="line">b = <span class="number">20</span>        <span class="comment">// a 还是 10，b 是 20，完全独立</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> obj = &#123; <span class="attr">count</span>: <span class="number">10</span> &#125;</span><br><span class="line"><span class="keyword">const</span> obj2 = obj</span><br><span class="line">obj2.<span class="property">count</span> = <span class="number">20</span>   <span class="comment">// obj.count 也变成 20，共享同一个引用</span></span><br></pre></td></tr></table></figure>
+
+<p>值类型没有地址，所以没东西可拦。这句话是后面所有事的起点。</p>
+<h2 id="Vue2-的痛点"><a href="#Vue2-的痛点" class="headerlink" title="Vue2 的痛点"></a>Vue2 的痛点</h2><p>Vue2 的响应式基于 <code>Object.defineProperty</code>，它有一个致命缺陷：只能劫持对象的属性，无法劫持原始值。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> count = <span class="number">0</span></span><br><span class="line"><span class="title class_">Object</span>.<span class="title function_">defineProperty</span>(<span class="variable language_">window</span>, <span class="string">&#x27;count&#x27;</span>, &#123;</span><br><span class="line">  <span class="title function_">get</span>(<span class="params"></span>) &#123; <span class="keyword">return</span> count &#125;,</span><br><span class="line">  <span class="title function_">set</span>(<span class="params">val</span>) &#123; count = val &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这种方式只能劫持全局变量，没法封装复用。于是留下三个后果：</p>
+<ul>
+<li>原始类型无法独立响应式，必须包裹在对象里；</li>
+<li>解构丢失响应式，<code>const &#123; name &#125; = reactive(user)</code> 之后就断了；</li>
+<li>数组需要重写方法，性能开销大。</li>
+</ul>
+<p>Vue3 团队的目标很明确：打造一套真正通用、无缺陷的响应式系统，同时支持原始类型和引用类型。</p>
+<h2 id="引用类型的解法"><a href="#引用类型的解法" class="headerlink" title="引用类型的解法"></a>引用类型的解法</h2><p>对于对象和数组，JavaScript 天生支持引用传递，Vue3 直接用 Proxy 劫持整个对象。</p>
+<p><code>reactive</code> 接收一个对象，返回一个 Proxy 代理对象。代理对象和原对象用法完全一致，访问或修改属性时自动触发依赖收集和更新。</p>
+<p>这就是 <code>reactive</code> 不用加 <code>.value</code> 的原因：Proxy 完美适配引用类型，没有语法负担。</p>
+<h2 id="原始类型的困境"><a href="#原始类型的困境" class="headerlink" title="原始类型的困境"></a>原始类型的困境</h2><p>核心问题来了：Proxy 只能代理对象和数组，不能代理原始类型。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Proxy</span>(<span class="number">10</span>, &#123;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>我在 <code>node v22.22.1</code> 上跑这行，报的是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Uncaught TypeError: Cannot create proxy with a non-object as target or handler</span><br></pre></td></tr></table></figure>
+
+<p>这是 JavaScript 标准规定的，不是 Vue 的问题。<code>reactive(0)</code> 会把 <code>0</code> 原样还回去，顺手打一句 <code>[Vue warn] value cannot be made reactive: 0</code>。源码里 <code>createReactiveObject</code> 开头判了一下 <code>isObject</code>，不是对象就警告，然后 <code>return target</code>。</p>
+<p>那原始类型怎么实现响应式，只剩一条路：包装成对象。</p>
+<p><code>ref</code> 的本质，就是把一个原始类型的值，包裹在一个单属性对象里，用 <code>.value</code> 作为唯一访问入口。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">ref</span>(<span class="params">value</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">_isRef</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">value</span>: value</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样一来，原始类型变成了引用类型，Proxy 可以正常代理，我们也就能监听它的变化了。这就是 <code>.value</code> 的唯一来源：为了突破语言限制，给原始类型套上响应式外壳。</p>
+<h2 id="源码里长什么样"><a href="#源码里长什么样" class="headerlink" title="源码里长什么样"></a>源码里长什么样</h2><p>光看伪代码不够，真源码更能说明问题。</p>
+<p><code>packages/reactivity/src/ref.ts</code> 里，<code>ref</code> 函数最后走的是 <code>createRef</code>，再 <code>new RefImpl(rawValue, shallow)</code>。<code>RefImpl</code> 这个类不长：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RefImpl</span> &#123;</span><br><span class="line">  private _value</span><br><span class="line">  private _rawValue</span><br><span class="line">  public readonly __v_isRef = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">value, __v_isShallow</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_rawValue</span> = value</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_value</span> = __v_isShallow ? value : <span class="title function_">toReactive</span>(value)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> <span class="title function_">value</span>() &#123;</span><br><span class="line">    <span class="title function_">trackRefValue</span>(<span class="variable language_">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">_value</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> <span class="title function_">value</span>(<span class="params">newVal</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_">hasChanged</span>(newVal, <span class="variable language_">this</span>.<span class="property">_rawValue</span>)) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">_rawValue</span> = newVal</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">_value</span> = <span class="variable language_">this</span>.<span class="property">__v_isShallow</span> ? newVal : <span class="title function_">toReactive</span>(newVal)</span><br><span class="line">      <span class="title function_">triggerRefValue</span>(<span class="variable language_">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>toReactive</code> 只有一行：<code>isObject(value) ? reactive(value) : value</code>。是对象就转成 reactive，是原始值就原样留着。</p>
+<p>所以 ref 本质上是 <code>RefImpl</code> 类的实例对象。这个对象只有一个公开属性，就是 <code>value</code>。读写 <code>xxx.value</code>，本质是调类的 get 和 set 访问器：get 收集依赖，set 触发更新。<code>__v_isRef</code> 是给框架自己认亲用的标识。</p>
+<h2 id="reactive-那边差在哪"><a href="#reactive-那边差在哪" class="headerlink" title="reactive 那边差在哪"></a>reactive 那边差在哪</h2><p>把两边源码摆一起，差别就一行。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Proxy</span>(target, &#123;</span><br><span class="line">  <span class="title function_">get</span>(<span class="params">target, key</span>) &#123;</span><br><span class="line">    <span class="title function_">track</span>(target, key)</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Reflect</span>.<span class="title function_">get</span>(target, key)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">set</span>(<span class="params">target, key, value</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> result = <span class="title class_">Reflect</span>.<span class="title function_">set</span>(target, key, value)</span><br><span class="line">    <span class="title function_">trigger</span>(target, key)</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>reactive</code> 代理的是整个对象，直接访问属性就行；<code>ref</code> 代理的是包装对象的 <code>value</code> 属性，必须通过 <code>.value</code> 访问。</p>
+<p>两者底层的依赖收集和更新逻辑完全一致，只是数据载体不同。</p>
+<h2 id="模板里为什么不用写"><a href="#模板里为什么不用写" class="headerlink" title="模板里为什么不用写"></a>模板里为什么不用写</h2><p><code>&lt;template&gt;</code> 里 <code>&#123;&#123; count &#125;&#125;</code> 就够了，这不是魔法，是编译器替你补了。</p>
+<p>在 <code>@vue/compiler-sfc@3.5.45</code> 上编一段 <code>&lt;script setup&gt;</code>，render 里出来的是 <code>_toDisplayString($setup.count)</code>，binding 标成 <code>setup-ref</code>。真正干活的是运行时那步，<code>@vue/runtime-core@3.5.45</code> 的 <code>handleSetupResult</code> 里有一句：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">instance.<span class="property">setupState</span> = <span class="title function_">proxyRefs</span>(setupResult)</span><br></pre></td></tr></table></figure>
+
+<p><code>proxyRefs</code> 又套了一层代理，读到 ref 自动取 <code>.value</code>，写进去自动落到 <code>.value</code> 上：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> setup = &#123; <span class="attr">count</span>: <span class="title function_">ref</span>(<span class="number">0</span>) &#125;</span><br><span class="line"><span class="keyword">const</span> ctx = <span class="title function_">proxyRefs</span>(setup)</span><br><span class="line">ctx.<span class="property">count</span>      <span class="comment">// 0，typeof 是 number</span></span><br><span class="line">ctx.<span class="property">count</span> = <span class="number">5</span>  <span class="comment">// 等价于 setup.count.value = 5</span></span><br></pre></td></tr></table></figure>
+
+<p>编译器那边认得 <code>__v_isRef</code> 标识，运行时这边再兜一层，模板自动解包就是这么来的。</p>
+<h2 id="解包规则，四条"><a href="#解包规则，四条" class="headerlink" title="解包规则，四条"></a>解包规则，四条</h2><p>自动解包有明确规则，边界比想象中窄。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 顶层 ref：自动解包</span></span><br><span class="line"><span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// reactive 对象里的 ref：自动解包</span></span><br><span class="line"><span class="keyword">const</span> state = <span class="title function_">reactive</span>(&#123; count &#125;)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(state.<span class="property">count</span>)   <span class="comment">// 0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 数组、集合里的 ref：不解包</span></span><br><span class="line"><span class="keyword">const</span> arr = <span class="title function_">reactive</span>([<span class="title function_">ref</span>(<span class="number">0</span>)])</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(arr[<span class="number">0</span>].<span class="property">value</span>)  <span class="comment">// 必须写 .value</span></span><br><span class="line"><span class="keyword">const</span> map = <span class="title function_">reactive</span>(<span class="keyword">new</span> <span class="title class_">Map</span>([[<span class="string">&#x27;count&#x27;</span>, <span class="title function_">ref</span>(<span class="number">0</span>)]]))</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(map.<span class="title function_">get</span>(<span class="string">&#x27;count&#x27;</span>).<span class="property">value</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解构出来的是快照</span></span><br><span class="line"><span class="keyword">const</span> &#123; count &#125; = state</span><br></pre></td></tr></table></figure>
+
+<p>口诀是：顶层 ref 和 reactive 里的 ref 自动解包，数组、集合、解构之后的 ref 必须手动 <code>.value</code>。</p>
+<p>这几条我都真跑过。<code>reactive(&#123; inner: ref(3) &#125;).inner</code> 是 <code>3</code>；<code>reactive([ref(&#39;a&#39;)])[0]</code> 是 <code>RefImpl</code>；<code>reactive(new Map([[&#39;k&#39;, ref(1)]])).get(&#39;k&#39;)</code> 也是 <code>RefImpl</code>。</p>
+<p>还有一处更隐蔽，把新 ref 赋给已经挂着 ref 的属性，旧的会被悄悄换掉：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">0</span>)</span><br><span class="line"><span class="keyword">const</span> state = <span class="title function_">reactive</span>(&#123; count &#125;)</span><br><span class="line">state.<span class="property">count</span> = <span class="title function_">ref</span>(<span class="number">2</span>)</span><br><span class="line"><span class="comment">// state.count 是 2，count.value 还是 0</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="全都不用-value-行不行"><a href="#全都不用-value-行不行" class="headerlink" title="全都不用 .value 行不行"></a>全都不用 .value 行不行</h2><p>很多新手会问：为什么不让 ref 也像 reactive 一样不用加 <code>.value</code>，这样不更统一吗。</p>
+<p>有两条绕不过去的理由。</p>
+<p>第一条是语言死限制，原始类型无法劫持。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> count = $ref(<span class="number">0</span>)</span><br><span class="line">count++</span><br></pre></td></tr></table></figure>
+
+<p>这种语法在 JavaScript 里绝对实现不了，因为 <code>count</code> 是原始类型，存的是值不是引用，你修改 <code>count</code> 只是修改变量本身，没有任何办法监听这个行为。除非 TC39 标准新增语法。</p>
+<p>第二条是 Vue 真试过了。</p>
+<p><code>$ref</code> 是编译期宏，编译完 <code>count++</code> 会变成 <code>count.value++</code>。我拿 <code>@vue/compiler-sfc@3.3.13</code> 编了一遍，确实如此，连模板字符串里的 <code>$&#123;count&#125;</code> 都被补成 <code>$&#123;count.value&#125;</code>，同时 stderr 打一行 deprecation 警告。</p>
+<p>换到 <code>@vue/compiler-sfc@3.5.45</code>，同一段源码编出来，<code>$ref</code> 原样躺着，一个字符没动。真拿 <code>new Function</code> 跑 setup：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ReferenceError: $ref is not defined</span><br></pre></td></tr></table></figure>
+
+<p>构建是过的，运行到那行才炸。2023 年 2 月这个 RFC 被官方放弃，理由里最关键的一条是：少了 <code>.value</code>，就看不出哪一行在读响应式数据、哪一行会悄悄触发一次重跑。另外几条也都在：破坏 JS 原生语义、调试困难；解构和传递会出问题；团队学习成本高。</p>
+<p>所以 <code>.value</code> 是目前最平衡、最可靠、最符合 JS 原生语义的方案。</p>
+<h2 id="选型"><a href="#选型" class="headerlink" title="选型"></a>选型</h2><p>基础类型一律用 <code>ref</code>：<code>count</code>、<code>name</code>、<code>loading</code> 这些。</p>
+<p>多个关联字段用 <code>reactive</code>：一个表单对象，<code>username</code>、<code>password</code> 摆在一起，写起来像普通对象。</p>
+<p>函数返回响应式数据必须用 <code>ref</code>，这点我踩过最贵的坑：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 推荐：ref 可以独立传递，不会丢失响应式</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useCount</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> count = <span class="title function_">ref</span>(<span class="number">0</span>)</span><br><span class="line">  <span class="keyword">return</span> count</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不推荐：reactive 解构后丢失响应式，不适合独立返回</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useUser</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> user = <span class="title function_">reactive</span>(&#123; <span class="attr">name</span>: <span class="string">&#x27;&#x27;</span> &#125;)</span><br><span class="line">  <span class="keyword">return</span> user</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有一条：<code>computed</code> 里别忘了 <code>.value</code>，<code>computed(() =&gt; count.value * 2)</code>，漏一个就是 <code>NaN</code>，而且要等渲染时才炸。</p>
+<h2 id="一张表"><a href="#一张表" class="headerlink" title="一张表"></a>一张表</h2><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>数据类型</th>
+<th>实现方式</th>
+<th>语法</th>
+<th>核心原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ref</td>
+<td>原始类型 &#x2F; 对象</td>
+<td><code>RefImpl</code> 包装对象</td>
+<td><code>.value</code></td>
+<td>JS 原始类型无法被 Proxy 代理</td>
+</tr>
+<tr>
+<td>reactive</td>
+<td>对象 &#x2F; 数组</td>
+<td>Proxy 直接代理</td>
+<td>无 <code>.value</code></td>
+<td>JS 引用类型天然支持代理</td>
+</tr>
+</tbody></table>
+<p><code>.value</code> 不是 Vue 的设计缺陷，而是 JS 语言限制下的最优解。ref 是原始类型的响应式容器，reactive 是引用类型的响应式代理。</p>
+<p>我原来也觉得这层壳多余，直到自己用 <code>Object.defineProperty</code> 在 <code>globalThis</code> 上给裸变量装 getter 和 setter，打点日志确实出来了 <code>[ &#39;set:42&#39;, &#39;get&#39; ]</code>。挺得意，然后想起来线上是 SSR，两个请求同时跑，<code>globalThis.count</code> 只有一个位置。</p>
+<p>那条路当场就断了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7626229566056267782">深入 Vue3 响应式：为什么有的要加 .value，有的不用？从设计到源码彻底讲透 · 掘金</a>：本文的章节顺序、论证推进、代码示例与多处表述取自这篇，仅去掉了编号小标题、并补入我自己在本机跑出的输出。</li>
+<li><a target="_blank" rel="noopener" href="https://cn.vuejs.org/guide/essentials/reactivity-fundamentals.html">响应式基础 · Vue.js 官方文档</a>：ref 的设计动机与官方伪代码、<code>reactive()</code> 的三条局限性、额外的 ref 解包细节。</li>
+<li><a target="_blank" rel="noopener" href="https://cn.vuejs.org/guide/extras/reactivity-transform.html">响应性语法糖 · Vue.js 官方文档</a>：<code>$ref</code> 宏的编译行为、<code>$()</code> 解构与 <code>$$()</code> 逃逸标记。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/vuejs/rfcs/discussions/369">vuejs&#x2F;rfcs Discussion #369</a>：2023-02-21 的放弃声明与四条理由。</li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1126271">vue3 源码学习，实现一个 mini-vue（三）：ref 的响应式 · 阿里云开发者社区</a>：三问式推进、<code>trackRefValue</code> 与 <code>triggerRefValue</code> 的调用链、<code>hasChanged</code> 的实现。</li>
+<li><a target="_blank" rel="noopener" href="https://www.w3cschool.cn/article/74989338.html">Vue 3 ref 和 reactive 区别（附 3 个要点）· 编程狮</a>：开篇三行结论表、「脚本里见 ref 就加 .value」的说法。</li>
+<li><a target="_blank" rel="noopener" href="https://grapecity.csdn.net/68d5e8948867235e1388b757.html">Vue 3 响应式三剑客：ref vs reactive vs Proxy 原理全解析 · 葡萄城开发者空间</a>：ref 与 reactive 对比表、Vue 2 与 Vue 3 能力对比表。</li>
+<li><a target="_blank" rel="noopener" href="https://cloud.tencent.cn/developer/article/2183938">从 Proxy 到 Vue3 响应式 · 腾讯云开发者社区</a>：<code>createGetter</code> 的 <code>shouldUnwrap</code> 判定与 <code>createSetter</code> 里写回旧 ref 的分支。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/">https://zhaoqianguo.github.io/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JavaScript/">JavaScript</a><a class="post-meta__tags" href="/tags/%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB/">源码走读</a><a class="post-meta__tags" href="/tags/Vue/">Vue</a></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">微任务队列在哪一步清空</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-12</div><div class="title">状态没有名字，React 却一次都没认错</div></div></a></div><div><a href="/2026/11/13/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-13</div><div class="title">Fiber 把一次渲染拆成了什么</div></div></a></div><div><a href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-11-16</div><div class="title">微任务队列在哪一步清空</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E6%8A%9B%E7%BB%93%E8%AE%BA"><span class="toc-number">1.</span> <span class="toc-text">先抛结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">两种数据类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vue2-%E7%9A%84%E7%97%9B%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">Vue2 的痛点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%A7%A3%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">引用类型的解法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E5%A7%8B%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%9B%B0%E5%A2%83"><span class="toc-number">5.</span> <span class="toc-text">原始类型的困境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E9%87%8C%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-number">6.</span> <span class="toc-text">源码里长什么样</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#reactive-%E9%82%A3%E8%BE%B9%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">7.</span> <span class="toc-text">reactive 那边差在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E9%87%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8%E5%86%99"><span class="toc-number">8.</span> <span class="toc-text">模板里为什么不用写</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%8C%85%E8%A7%84%E5%88%99%EF%BC%8C%E5%9B%9B%E6%9D%A1"><span class="toc-number">9.</span> <span class="toc-text">解包规则，四条</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E9%83%BD%E4%B8%8D%E7%94%A8-value-%E8%A1%8C%E4%B8%8D%E8%A1%8C"><span class="toc-number">10.</span> <span class="toc-text">全都不用 .value 行不行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%89%E5%9E%8B"><span class="toc-number">11.</span> <span class="toc-text">选型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E8%A1%A8"><span class="toc-number">12.</span> <span class="toc-text">一张表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">13.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/" title="ref 为什么要包一层 .value"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ref 为什么要包一层 .value"/></a><div class="content"><a class="title" href="/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/" title="ref 为什么要包一层 .value">ref 为什么要包一层 .value</a><time datetime="2026-11-19T01:34:00.000Z" title="发表于 2026-11-19 09:34:00">2026-11-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="微任务队列在哪一步清空"/></a><div class="content"><a class="title" href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空">微任务队列在哪一步清空</a><time datetime="2026-11-16T03:13:00.000Z" title="发表于 2026-11-16 11:13:00">2026-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/13/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Fiber 把一次渲染拆成了什么"/></a><div class="content"><a class="title" href="/2026/11/13/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么">Fiber 把一次渲染拆成了什么</a><time datetime="2026-11-13T07:30:00.000Z" title="发表于 2026-11-13 15:30:00">2026-11-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="状态没有名字，React 却一次都没认错"/></a><div class="content"><a class="title" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错">状态没有名字，React 却一次都没认错</a><time datetime="2026-11-12T01:00:00.000Z" title="发表于 2026-11-12 09:00:00">2026-11-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《图解 HTTP》 学习笔记"/></a><div class="content"><a class="title" href="/2022/08/24/%E7%BD%91%E7%BB%9C/%E3%80%8A%E5%9B%BE%E8%A7%A3%20HTTP%E3%80%8B%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="《图解 HTTP》 学习笔记">《图解 HTTP》 学习笔记</a><time datetime="2022-08-24T04:41:23.000Z" title="发表于 2022-08-24 12:41:23">2022-08-24</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(()=>{
+  const getGiscusTheme = theme => {
+    return theme === 'dark' ? 'dark' : 'light'
+  }
+
+  const loadGiscus = () => {
+    const config = Object.assign({
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zhaoqianguo/myBlog',
+      'data-repo-id': 'R_kgDOIO10bw',
+      'data-category-id': 'DIC_kwDOIO10b84DLPNJ',
+      'data-mapping': 'pathname',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true
+    },{"data-reactions-enabled":1,"data-lang":"zh-CN","data-input-position":"top"})
+
+    const ele = document.createElement('script')
+    for (let key in config) {
+      ele.setAttribute(key, config[key])
+    }
+    document.getElementById('giscus-wrap').appendChild(ele)
+  }
+
+  const changeGiscusTheme = theme => {
+    const sendMessage = message => {
+      const iframe = document.querySelector('iframe.giscus-frame')
+      if (!iframe) return
+      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app')
+    }
+
+    sendMessage({
+      setConfig: {
+        theme: getGiscusTheme(theme)
+      }
+    });
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment= loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
