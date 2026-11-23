@@ -1,0 +1,312 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>循环依赖，两套模块系统两种活法 | 大西瓜的博客</title><meta name="author" content="大西瓜Crown"><meta name="copyright" content="大西瓜Crown"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="同一个 A 引 B、B 又引 A 的场景，ESM 抛异常，CJS 给你半个对象。把七段代码在 node v22.22.1 里跑一遍，看两套加载器差在哪一步。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="循环依赖，两套模块系统两种活法">
+<meta property="og:url" content="https://zhaoqianguo.github.io/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/index.html">
+<meta property="og:site_name" content="大西瓜的博客">
+<meta property="og:description" content="同一个 A 引 B、B 又引 A 的场景，ESM 抛异常，CJS 给你半个对象。把七段代码在 node v22.22.1 里跑一遍，看两套加载器差在哪一步。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png">
+<meta property="article:published_time" content="2026-11-23T02:12:00.000Z">
+<meta property="article:modified_time" content="2026-11-23T02:12:00.000Z">
+<meta property="article:author" content="大西瓜Crown">
+<meta property="article:tag" content="源码走读">
+<meta property="article:tag" content="Node">
+<meta property="article:tag" content="ES6">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png"><link rel="shortcut icon" href="/assets/images/favicon.png"><link rel="canonical" href="https://zhaoqianguo.github.io/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":400},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: 大西瓜Crown","link":"链接: ","source":"来源: 大西瓜的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '循环依赖，两套模块系统两种活法',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-11-23 10:12:00'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/assets/images/avatar.avif" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png')"><nav id="nav"><span id="blog-info"><a href="/" title="大西瓜的博客"><span class="site-name">大西瓜的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-compass"></i><span> 目錄</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 歸檔</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 標籤</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分類</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-book"></i><span> 文檔</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/posts/21cfbf15/"><span> 🚀 快速開始</span></a></li><li><a class="site-page child" href="/posts/dc584b87/"><span> 📑 主題頁面</span></a></li><li><a class="site-page child" href="/posts/4aa8abbe/"><span> 🛠 主題配置-1</span></a></li><li><a class="site-page child" href="/posts/ceeb73f/"><span> ⚔️ 主題配置-2</span></a></li><li><a class="site-page child" href="/posts/98d20436/"><span> ❓ 主題問答</span></a></li><li><a class="site-page child" href="/posts/4073eda/"><span> ⚡️ 進階教程</span></a></li><li><a class="site-page child" href="/posts/198a4240/"><span> ✨ 更新日誌</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fas fa-comment-dots"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-thumbs-up"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">循环依赖，两套模块系统两种活法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-11-23T02:12:00.000Z" title="发表于 2026-11-23 10:12:00">2026-11-23</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9A%8F%E7%AC%94/">随笔</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="循环依赖，两套模块系统两种活法"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>我写前端的那几年，一直觉得 <code>import</code> 和 <code>require</code> 就是同一件事换了层语法。类型检查跑通，单测全绿，模块引用能有什么问题。</p>
+<p>后来在一台服务器上被打脸。本地一切正常，某次只是挪了一行工具函数的引用位置，上线之后页面一加载就抛 <code>ReferenceError: Cannot access &#39;X&#39; before initialization</code>。另一次更难受，同一个公共库被两个子依赖分别引了进来，运行时做 <code>instanceof</code> 判断返回了 false，全局鉴权上下文莫名其妙就丢了。</p>
+<p>TypeScript 在这两件事上一句话都说不出来。在类型系统眼里每个导出都合法，可引擎底下跑的是两套完全不同的规矩。</p>
+<p>这篇的骨架来自《深入解析 JavaScript 循环依赖与模块副作用》，原文发在 51Testing，作者没有署名，地址放在最后。它给的七段代码我都在 <code>node v22.22.1</code> 下重跑了一遍，下面出现的输出都是我这边打出来的。</p>
+<h2 id="两段看起来等价的代码"><a href="#两段看起来等价的代码" class="headerlink" title="两段看起来等价的代码"></a>两段看起来等价的代码</h2><p>先看最朴素的状态共享。ESM 里导出一个变量和一个修改方法：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// state.mjs</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">let</span> status = <span class="string">&#x27;starting&#x27;</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">start</span>(<span class="params"></span>) &#123; status = <span class="string">&#x27;ready&#x27;</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>业务代码引进去，调一下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; status, start &#125; <span class="keyword">from</span> <span class="string">&#x27;./state.mjs&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用前 status =&#x27;</span>, status)</span><br><span class="line"><span class="title function_">start</span>()</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用后 status =&#x27;</span>, status)</span><br></pre></td></tr></table></figure>
+
+<p>跑出来是 <code>starting</code> 然后 <code>ready</code>，符合直觉。</p>
+<p>把同样的东西写成 CommonJS，然后习惯性地解构引入：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// state.cjs</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span>.<span class="property">status</span> = <span class="string">&#x27;starting&#x27;</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span>.<span class="property">start</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123; <span class="variable language_">module</span>.<span class="property">exports</span>.<span class="property">status</span> = <span class="string">&#x27;ready&#x27;</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; status, start &#125; = <span class="built_in">require</span>(<span class="string">&#x27;./state.cjs&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用前 status =&#x27;</span>, status)</span><br><span class="line"><span class="title function_">start</span>()</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用后 status =&#x27;</span>, status)</span><br></pre></td></tr></table></figure>
+
+<p>两行都打 <code>starting</code>。可 <code>start()</code> 明明把 <code>module.exports.status</code> 改成了 <code>ready</code>。</p>
+<p>不去解构、保留整个对象，就正常了：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> state = <span class="built_in">require</span>(<span class="string">&#x27;./state.cjs&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用前 =&#x27;</span>, state.<span class="property">status</span>)</span><br><span class="line">state.<span class="title function_">start</span>()</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用后 =&#x27;</span>, state.<span class="property">status</span>)</span><br></pre></td></tr></table></figure>
+
+<p>三段并排跑，输出是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">node v22.22.1</span><br><span class="line">ESM 调用前 status = starting</span><br><span class="line">ESM 调用后 status = ready</span><br><span class="line">CJS 解构 调用前 status = starting</span><br><span class="line">CJS 解构 调用后 status = starting</span><br><span class="line">CJS 整对象 调用前 status = starting</span><br><span class="line">CJS 整对象 调用后 status = ready</span><br></pre></td></tr></table></figure>
+
+<p>这不是 bug，是两份不同的契约。ESM 的具名导入建的是一个只读活绑定，导入方的变量名直接映射到导出模块内部的词法槽位上，导出方一赋值，读的人立刻看到新值。CommonJS 的 <code>require()</code> 返回的就是个普通对象，<code>const &#123; status &#125;</code> 是标准解构，把那个瞬间的属性值拷进了局部变量。从那一刻起它就与原来的对象无关了。</p>
+<p>从 CJS 往 ESM 迁移时「状态死活不同步」，根子都在这。</p>
+<h2 id="静态图链接和运行时求值"><a href="#静态图链接和运行时求值" class="headerlink" title="静态图链接和运行时求值"></a>静态图链接和运行时求值</h2><p>变量怎么绑定是一层差异，代码什么时候执行是另一层。</p>
+<p>ESM 的静态导入参与整棵依赖图的构建。入口文件第一行可执行代码开跑之前，引擎必须把所有依赖解析完、实例化完、绑定关系连好。所以 <code>import</code> 写在文件哪个位置都不影响执行顺序：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app.mjs</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;app: import 之前&#x27;</span>)</span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;./setup.mjs&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;app: import 之后&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// setup.mjs</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;setup 的顶层代码执行了&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>跑出来是 <code>setup</code> 先说话，然后才是入口文件的第一行。我把 <code>import</code> 挪到文件末尾试过，结果一样。</p>
+<p><code>require()</code> 就老实多了，它是个普通的同步函数调用，执行指针走到那一行才去读文件、跑代码、把 <code>module.exports</code> 塞进 <code>require.cache</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">--- 静态导入 ---</span><br><span class="line">setup 的顶层代码执行了</span><br><span class="line">app: import 之前</span><br><span class="line">app: import 之后</span><br><span class="line">--- require ---</span><br><span class="line">app: require 之前</span><br><span class="line">setup.cjs 的顶层代码执行了</span><br><span class="line">app: require 之后</span><br></pre></td></tr></table></figure>
+
+<p>这些词平时被叫成「导入提升」，听着像语法层面的代码置顶。它不是。它是两阶段生命周期在起作用，引擎先深度优先遍历整张图，再按拓扑顺序求值。</p>
+<p>这个顺序差异有个很常见的翻车点。入口文件第一行写 <code>process.env.PORT = &#39;8080&#39;</code>，第二行静态导入数据库模块，然后发现数据库模块读到的还是 <code>undefined</code>：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// env.mjs</span></span><br><span class="line">process.<span class="property">env</span>.<span class="property">PORT</span> = <span class="string">&#x27;8080&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;./db.mjs&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;入口赋值之后 PORT =&#x27;</span>, process.<span class="property">env</span>.<span class="property">PORT</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db 模块读到的 PORT = undefined</span><br><span class="line">入口赋值之后 PORT = 8080</span><br></pre></td></tr></table></figure>
+
+<p><code>db.mjs</code> 在那个 <code>= &#39;8080&#39;</code> 被执行之前就已经跑完了。真要让配置先生效，得换成动态 <code>import()</code>，它是个运行时表达式，返回 Promise，走到才拉取。</p>
+<h2 id="循环里的两种事故现场"><a href="#循环里的两种事故现场" class="headerlink" title="循环里的两种事故现场"></a>循环里的两种事故现场</h2><p>A 引 B、B 又引 A 的时候，两套机制的应对方式差得最远。</p>
+<p>CommonJS 为了不死循环，策略是「先交半成品」。检测到目标模块正在加载中，就把当前挂在 <code>exports</code> 上的对象直接递过去：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// a.cjs</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;a: 开始执行&#x27;</span>)</span><br><span class="line"><span class="built_in">exports</span>.<span class="property">ready</span> = <span class="literal">false</span></span><br><span class="line"><span class="keyword">const</span> b = <span class="built_in">require</span>(<span class="string">&#x27;./b.cjs&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;a: 读取 b.ready =&#x27;</span>, b.<span class="property">ready</span>)</span><br><span class="line"><span class="built_in">exports</span>.<span class="property">ready</span> = <span class="literal">true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;a: 执行完毕&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// b.cjs</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;b: 开始执行&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> a = <span class="built_in">require</span>(<span class="string">&#x27;./a.cjs&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;b: 读取 a.ready =&#x27;</span>, a.<span class="property">ready</span>)</span><br><span class="line"><span class="built_in">exports</span>.<span class="property">ready</span> = <span class="literal">true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;b: 执行完毕&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a: 开始执行</span><br><span class="line">b: 开始执行</span><br><span class="line">b: 读取 a.ready = false</span><br><span class="line">b: 执行完毕</span><br><span class="line">a: 读取 b.ready = true</span><br><span class="line">a: 执行完毕</span><br></pre></td></tr></table></figure>
+
+<p><code>b</code> 那一行读到的 <code>false</code> 就是半成品的味道：<code>a</code> 只挂了个 <code>ready: false</code> 出去，<code>ready = true</code> 还没轮到。</p>
+<p>真正要命的是那些「在 require 之后才导出」的东西。我把 <code>a.cjs</code> 里那个 <code>exports.late</code> 挪到 <code>require(&#39;./b.cjs&#39;)</code> 后面，<code>b</code> 那边拿到的是 <code>undefined</code>，同时 Node 打了条警告：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">f: typeof e.late = undefined</span><br><span class="line">(node:48454) Warning: Accessing non-existent property &#x27;late&#x27; of module exports inside circular dependency</span><br></pre></td></tr></table></figure>
+
+<p>而同一次实验里，如果 <code>helper</code> 是在 <code>require</code> 之前挂上去的，对面就能正常拿到函数（<code>typeof c.helper = function</code>）。同一个文件里两行导出，一行能到、一行到不了，区别只在先后。这种静默缺一半的状态，往往要跑到很久以后某个空指针调用才暴露。</p>
+<p>ESM 这边不给你缓冲。变量声明走严格词法作用域，循环依赖撞上就是当场报错：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// a.mjs</span></span><br><span class="line"><span class="keyword">import</span> &#123; b &#125; <span class="keyword">from</span> <span class="string">&#x27;./b.mjs&#x27;</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> a = <span class="string">&#x27;a&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;a: b =&#x27;</span>, b)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// b.mjs</span></span><br><span class="line"><span class="keyword">import</span> &#123; a &#125; <span class="keyword">from</span> <span class="string">&#x27;./a.mjs&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;b: a =&#x27;</span>, a)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> b = <span class="string">&#x27;b&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ReferenceError: Cannot access &#x27;a&#x27; before initialization</span><br><span class="line">    at file:///private/tmp/mod4/b.mjs:2:23</span><br><span class="line">    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)</span><br></pre></td></tr></table></figure>
+
+<p>原因很干净：链接阶段确实已经给 <code>a</code> 分配了绑定槽位，但按拓扑顺序先跑的是 <code>b.mjs</code>，<code>a.mjs</code> 里那句 <code>export const a = &#39;a&#39;</code> 还没执行。此刻 <code>a</code> 在暂存死区里，碰一下就是 <code>ReferenceError</code>。</p>
+<p>我见过有人顺手包一个 <code>setTimeout</code> 绕过去：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;b: 延迟读 a =&#x27;</span>, a), <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p>它能跑，输出是 <code>b: 延迟读 a = a</code>。但这只是把稳定性押在执行时序的巧合上。别人改一处 import，加载顺序一变，异常立刻回来。</p>
+<h2 id="跨边界的双包灾难"><a href="#跨边界的双包灾难" class="headerlink" title="跨边界的双包灾难"></a>跨边界的双包灾难</h2><p>单套系统内部的事还算好理解。真正难查的是两套混着用。</p>
+<p>现在很多库为了兼顾老代码的 <code>require</code> 和新项目的 <code>import</code>，会在 <code>package.json</code> 里配条件导出，同一份源码编出两份产物：ESM 一份 <code>.js</code>，CJS 一份 <code>.cjs</code>。我在 <code>/tmp</code> 里伪造了这么一个包，两份产物里各写一个 <code>Token</code> 类，源码逐字相同：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createRequire &#125; <span class="keyword">from</span> <span class="string">&#x27;node:module&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Token</span> <span class="keyword">as</span> <span class="title class_">ImportedToken</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;auth-sdk&#x27;</span></span><br><span class="line"><span class="keyword">const</span> <span class="built_in">require</span> = <span class="title function_">createRequire</span>(<span class="keyword">import</span>.<span class="property">meta</span>.<span class="property">url</span>)</span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">Token</span>: <span class="title class_">RequiredToken</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;auth-sdk&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> token = <span class="keyword">new</span> <span class="title class_">ImportedToken</span>(<span class="string">&#x27;secret-123&#x27;</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;token instanceof ImportedToken =&#x27;</span>, token <span class="keyword">instanceof</span> <span class="title class_">ImportedToken</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;token instanceof RequiredToken =&#x27;</span>, token <span class="keyword">instanceof</span> <span class="title class_">RequiredToken</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">token instanceof ImportedToken = true</span><br><span class="line">token instanceof RequiredToken = false</span><br><span class="line">两个 Token 相等吗 = false</span><br></pre></td></tr></table></figure>
+
+<p>代码一模一样，<code>instanceof</code> 一个 true 一个 false。因为在加载器眼里 <code>./dist/index.js</code> 和 <code>./dist/index.cjs</code> 是两个不同路径的文件，各自独立加载，各自生成互不相通的缓存。它们导出的 <code>Token</code> 是两个不同的构造函数，原型链都是分开的。</p>
+<p>我顺手查了一下缓存，想看看是不是真的存了两份：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">require.cache 里 auth-sdk 的条目: 1</span><br><span class="line">  /private/tmp/mod6/node_modules/auth-sdk/dist/index.cjs</span><br></pre></td></tr></table></figure>
+
+<p>只看到一条。ESM 那份不在 <code>require.cache</code> 里，它有自己的一套模块表，两套缓存不共享。这个细节比原文说的「两份互不相通的缓存」更准确一点：不是同一张表里存了两行，而是两张表各存一行。</p>
+<p>这个问题的破坏力取决于库里存了什么。要是留着数据库连接池、全局事件总线、用户 Session 单例，同一个进程里就真有两套状态在跑，一边改了登录凭证，另一边浑然不知。Webpack 或 Vite 全量打包时有时会被去重策略盖过去，走 Node 原生服务端就几乎百分之百撞上。</p>
+<h2 id="我现在怎么防"><a href="#我现在怎么防" class="headerlink" title="我现在怎么防"></a>我现在怎么防</h2><p>这些坑没法靠业务代码里到处打补丁解决，得在依赖形状和发包流程上挡。</p>
+<p>第一件事是把共享逻辑下沉。A 和 B 互相引对方的常量、类型、小工具函数时，通常说明中间少了一层。把被公用的部分抽到 <code>types.ts</code>、<code>constants.ts</code> 这种叶子模块里，两边单向依赖它，环就断了。如果 A 真需要 B 的运行时实例，用参数或者依赖注入在运行时传进去，别在文件顶层把引用写死。</p>
+<p>第二件事是管住模块顶层的副作用。顶层别直接发网络请求、读还没注入的环境变量、改全局对象。确实需要异步初始化的东西，显式导出一个 <code>initClient()</code> 或者一个 Promise，让业务层在明确的启动生命周期里 await 它，把控制权还回去，而不是赌加载顺序。</p>
+<p>第三件事是发公共库之前用 <code>npm pack</code> 做真实安装烟测。源码目录里单测全绿不够。打个 <code>.tgz</code>，扔进干净的临时工程里装上，分别写一个 <code>.mjs</code> 和一个 <code>.cjs</code> 脚本跑最基础的引入，确认 <code>import</code> 和 <code>require</code> 拿到的 API 一致、类没分裂、单例没变两份。我上周给一个内部包补这一步的时候，第一次跑就查出 <code>exports</code> 字段漏配了 <code>require</code> 分支，CJS 侧一直在拿默认导出。</p>
+<p>这七段代码前后跑了大概一小时，最有用的不是哪一条结论，是那个 <code>require.cache</code> 只有一条的输出。它让我意识到所谓「两套系统」不是抽象的比喻，它们在进程里真的各有一套自己的账本。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>原文：<a target="_blank" rel="noopener" href="http://www.51testing.com/html/74/n-7811374.html">深入解析 JavaScript 循环依赖与模块副作用</a>，51Testing，2026-09-09。本文的章节骨架、七组代码示例与论证顺序来自这一篇，按本站文风重写并对全部输出做了本地复现，双包缓存那一段补了实测细节。</li>
+<li><a target="_blank" rel="noopener" href="https://nodejs.org/api/modules.html#cycles">Modules: CommonJS modules · Node.js</a>：Cycles 一节的官方示例与 <code>partially done objects can be returned</code> 那句。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io">大西瓜Crown</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://zhaoqianguo.github.io/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/">https://zhaoqianguo.github.io/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://zhaoqianguo.github.io" target="_blank">大西瓜的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB/">源码走读</a><a class="post-meta__tags" href="/tags/Node/">Node</a><a class="post-meta__tags" href="/tags/ES6/">ES6</a></div><div class="post_share"><div class="social-share" data-image="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/" title="ref 为什么要包一层 .value"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ref 为什么要包一层 .value</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/05/28/ES6/ES6_1_let_const/" title="ES6 学习笔记（1） - let 和 const"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-28</div><div class="title">ES6 学习笔记（1） - let 和 const</div></div></a></div><div><a href="/2022/06/01/ES6/ES6_2_%E5%8F%98%E9%87%8F%E7%9A%84%E7%BB%93%E6%9E%84%E8%B5%8B%E5%80%BC/" title="ES6 学习笔记（2） - 变量的解构赋值"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-7.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-01</div><div class="title">ES6 学习笔记（2） - 变量的解构赋值</div></div></a></div><div><a href="/2022/06/01/ES6/ES6_3_%E5%87%BD%E6%95%B0%E7%9A%84%E6%89%A9%E5%B1%95/" title="ES6 学习笔记（3） - 函数的扩展"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-01</div><div class="title">ES6 学习笔记（3） - 函数的扩展</div></div></a></div><div><a href="/2022/06/02/ES6/ES6_4_%E6%95%B0%E7%BB%84%E5%8F%8A%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%89%A9%E5%B1%95/" title="ES6 学习笔记（4） - 数组及对象的扩展"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-02</div><div class="title">ES6 学习笔记（4） - 数组及对象的扩展</div></div></a></div><div><a href="/2022/06/02/ES6/ES6_5_%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E6%96%B9%E6%B3%95%E5%8F%8A%E8%BF%90%E7%AE%97%E7%AC%A6%E6%89%A9%E5%B1%95/" title="ES6 学习笔记（5） - 对象新增方法及运算符扩展"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-02</div><div class="title">ES6 学习笔记（5） - 对象新增方法及运算符扩展</div></div></a></div><div><a href="/2022/06/03/ES6/ES6_6_Symbol/" title="ES6 学习笔记（6） - Symbol"><img class="cover" src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-1.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-06-03</div><div class="title">ES6 学习笔记（6） - Symbol</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/assets/images/avatar.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">大西瓜Crown</div><div class="author-info__description">热爱</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">20</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">11</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/zhaoqianguo"><i class="fab fa-github"></i><span>follow me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/zhaoqianguo" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:844851879@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">永远相信美好的事即将发生😎</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E6%AE%B5%E7%9C%8B%E8%B5%B7%E6%9D%A5%E7%AD%89%E4%BB%B7%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-number">1.</span> <span class="toc-text">两段看起来等价的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%9B%BE%E9%93%BE%E6%8E%A5%E5%92%8C%E8%BF%90%E8%A1%8C%E6%97%B6%E6%B1%82%E5%80%BC"><span class="toc-number">2.</span> <span class="toc-text">静态图链接和运行时求值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E9%87%8C%E7%9A%84%E4%B8%A4%E7%A7%8D%E4%BA%8B%E6%95%85%E7%8E%B0%E5%9C%BA"><span class="toc-number">3.</span> <span class="toc-text">循环里的两种事故现场</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%A8%E8%BE%B9%E7%95%8C%E7%9A%84%E5%8F%8C%E5%8C%85%E7%81%BE%E9%9A%BE"><span class="toc-number">4.</span> <span class="toc-text">跨边界的双包灾难</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E7%8E%B0%E5%9C%A8%E6%80%8E%E4%B9%88%E9%98%B2"><span class="toc-number">5.</span> <span class="toc-text">我现在怎么防</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">6.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/" title="循环依赖，两套模块系统两种活法"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-5.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="循环依赖，两套模块系统两种活法"/></a><div class="content"><a class="title" href="/2026/11/23/2026-11-23-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E4%B8%A4%E5%A5%97%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%A4%E7%A7%8D%E6%B4%BB%E6%B3%95/" title="循环依赖，两套模块系统两种活法">循环依赖，两套模块系统两种活法</a><time datetime="2026-11-23T02:12:00.000Z" title="发表于 2026-11-23 10:12:00">2026-11-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/" title="ref 为什么要包一层 .value"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-10.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ref 为什么要包一层 .value"/></a><div class="content"><a class="title" href="/2026/11/19/2026-11-18-ref%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8C%85%E4%B8%80%E5%B1%82value/" title="ref 为什么要包一层 .value">ref 为什么要包一层 .value</a><time datetime="2026-11-19T01:34:00.000Z" title="发表于 2026-11-19 09:34:00">2026-11-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-3.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="微任务队列在哪一步清空"/></a><div class="content"><a class="title" href="/2026/11/16/2026-11-16-%E5%BE%AE%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97%E5%9C%A8%E5%93%AA%E4%B8%80%E6%AD%A5%E6%B8%85%E7%A9%BA/" title="微任务队列在哪一步清空">微任务队列在哪一步清空</a><time datetime="2026-11-16T03:13:00.000Z" title="发表于 2026-11-16 11:13:00">2026-11-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/13/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-8.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Fiber 把一次渲染拆成了什么"/></a><div class="content"><a class="title" href="/2026/11/13/2026-11-13-Fiber%E6%8A%8A%E4%B8%80%E6%AC%A1%E6%B8%B2%E6%9F%93%E6%8B%86%E6%88%90%E4%BA%86%E4%BB%80%E4%B9%88/" title="Fiber 把一次渲染拆成了什么">Fiber 把一次渲染拆成了什么</a><time datetime="2026-11-13T07:30:00.000Z" title="发表于 2026-11-13 15:30:00">2026-11-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错"><img src="https://fastly.jsdelivr.net/gh/jerryc127/CDN/img/material-2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="状态没有名字，React 却一次都没认错"/></a><div class="content"><a class="title" href="/2026/11/12/2026-11-12-%E7%8A%B6%E6%80%81%E6%B2%A1%E6%9C%89%E5%90%8D%E5%AD%97React%E5%8D%B4%E4%B8%80%E6%AC%A1%E9%83%BD%E6%B2%A1%E8%AE%A4%E9%94%99/" title="状态没有名字，React 却一次都没认错">状态没有名字，React 却一次都没认错</a><time datetime="2026-11-12T01:00:00.000Z" title="发表于 2026-11-12 09:00:00">2026-11-12</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By 大西瓜Crown</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(()=>{
+  const getGiscusTheme = theme => {
+    return theme === 'dark' ? 'dark' : 'light'
+  }
+
+  const loadGiscus = () => {
+    const config = Object.assign({
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'zhaoqianguo/myBlog',
+      'data-repo-id': 'R_kgDOIO10bw',
+      'data-category-id': 'DIC_kwDOIO10b84DLPNJ',
+      'data-mapping': 'pathname',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true
+    },{"data-reactions-enabled":1,"data-lang":"zh-CN","data-input-position":"top"})
+
+    const ele = document.createElement('script')
+    for (let key in config) {
+      ele.setAttribute(key, config[key])
+    }
+    document.getElementById('giscus-wrap').appendChild(ele)
+  }
+
+  const changeGiscusTheme = theme => {
+    const sendMessage = message => {
+      const iframe = document.querySelector('iframe.giscus-frame')
+      if (!iframe) return
+      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app')
+    }
+
+    sendMessage({
+      setConfig: {
+        theme: getGiscusTheme(theme)
+      }
+    });
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment= loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
